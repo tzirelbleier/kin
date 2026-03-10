@@ -42,13 +42,19 @@ function LoginForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setError('Login failed. Please try again.'); setLoading(false); return }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    const dest = nextPath ?? roleToPath(profile?.role)
+    if (profileError || !profile) {
+      setError(`Signed in but no profile found (${profileError?.message ?? 'unknown error'}). Contact support.`)
+      setLoading(false)
+      return
+    }
+
+    const dest = nextPath ?? roleToPath(profile.role)
     // Full page reload ensures session cookie is flushed before middleware runs
     window.location.href = dest
   }
