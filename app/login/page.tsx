@@ -39,17 +39,16 @@ function LoginForm() {
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError('Login failed. Please try again.'); setLoading(false); return }
-
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      setError(`Signed in but no profile found (${profileError?.message ?? 'unknown error'}). Contact support.`)
+    // Use /api/me which fetches profile via service role (avoids RLS recursion)
+    const res = await fetch('/api/me')
+    if (!res.ok) {
+      setError('Signed in but profile could not be loaded. Contact support.')
+      setLoading(false)
+      return
+    }
+    const profile = await res.json()
+    if (!profile?.role) {
+      setError('Signed in but no role assigned to this account. Contact support.')
       setLoading(false)
       return
     }

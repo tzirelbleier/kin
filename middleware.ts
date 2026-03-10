@@ -3,8 +3,20 @@
 // ================================================================
 
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
+// Use service role for profile lookups to avoid RLS recursion
+async function getProfileByUserId(userId: string) {
+  const service = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+  const { data } = await service.from('profiles').select('role').eq('id', userId).single()
+  return data
+}
 
 function roleToPath(role?: string | null): string {
   if (role === 'family') return '/family/dashboard'
@@ -52,12 +64,7 @@ export async function middleware(request: NextRequest) {
   // /login is public — but redirect already-authenticated users to their home
   if (pathname === '/login') {
     if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      // If profile is missing, let them stay on /login (avoids redirect loop)
+      const profile = await getProfileByUserId(user.id)
       if (!profile) return response
       return NextResponse.redirect(new URL(roleToPath(profile.role), request.url))
     }
@@ -71,13 +78,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Fetch role for access-control decisions
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
+  // Fetch role via service role (bypasses RLS to avoid recursive policy issue)
+  const profile = await getProfileByUserId(user.id)
   const role = profile?.role
 
   // Root — redirect to role home
