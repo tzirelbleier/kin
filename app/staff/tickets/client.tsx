@@ -5,7 +5,6 @@ import { PRIORITY_ROUTING, STATUS_LABELS, isOverdue, getRemainingHours } from '@
 import type { Ticket, TicketMessage, TicketStatus } from '@/types'
 
 const STATUS_TABS: (TicketStatus | 'all')[] = ['all', 'open', 'assigned', 'in_progress', 'pending_family', 'resolved']
-const CURRENT_STAFF_ID = 'staff1'
 
 function SlaChip({ due_by }: { due_by: string | null }) {
   if (!due_by) return null
@@ -20,9 +19,17 @@ function SlaChip({ due_by }: { due_by: string | null }) {
   return <span className={cls}>{label}</span>
 }
 
-interface Props { tickets: (Ticket & { resident?: { full_name: string; room_number: string | null }; creator?: { full_name: string; role: string }; assignee?: { full_name: string; role: string } | null; messages?: (TicketMessage & { author?: { full_name: string; role: string } })[] })[] }
+interface Props {
+  tickets: (Ticket & {
+    resident?: { full_name: string; room_number: string | null }
+    creator?: { full_name: string; role: string }
+    assignee?: { full_name: string; role: string } | null
+    messages?: (TicketMessage & { author?: { full_name: string; role: string } })[]
+  })[]
+  profileId: string
+}
 
-export function StaffTicketsClient({ tickets }: Props) {
+export function StaffTicketsClient({ tickets, profileId }: Props) {
   const [statusFilter, setStatusFilter] = useState<TicketStatus | 'all'>('all')
   const [mineOnly, setMineOnly] = useState(false)
   const [urgentOnly, setUrgentOnly] = useState(false)
@@ -37,7 +44,7 @@ export function StaffTicketsClient({ tickets }: Props) {
 
   const filtered = tickets.filter((t) => {
     if (statusFilter !== 'all' && t.status !== statusFilter) return false
-    if (mineOnly && t.assigned_to !== CURRENT_STAFF_ID) return false
+    if (mineOnly && t.assigned_to !== profileId) return false
     if (urgentOnly && t.priority !== 'urgent' && t.priority !== 'high') return false
     return true
   })
@@ -63,7 +70,7 @@ export function StaffTicketsClient({ tickets }: Props) {
           ticket_id: selected.id,
           body: replyBody.trim(),
           is_internal: replyMode === 'internal',
-          author_id: CURRENT_STAFF_ID,
+          author_id: profileId,
           author_role: 'nurse',
           facility_id: selected.facility_id,
         }),
@@ -275,7 +282,7 @@ export function StaffTicketsClient({ tickets }: Props) {
                 await fetch(`/api/tickets?id=${selected.id}`, {
                   method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ status: 'resolved', resolution_note: resolveNote, facility_id: selected.facility_id, actor_id: CURRENT_STAFF_ID }),
+                  body: JSON.stringify({ status: 'resolved', resolution_note: resolveNote, facility_id: selected.facility_id, actor_id: profileId }),
                 })
                 setResolveModal(false)
                 window.location.reload()

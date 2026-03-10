@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { EscalateModal } from '@/components/family/EscalateModal'
+import { createBrowserClient } from '@/lib/supabase'
 import type { CareEvent, Resident } from '@/types'
 
 const EVENT_ICONS: Record<string, string> = {
@@ -119,13 +120,17 @@ function EventCard({
 }
 
 interface Props {
-  resident: Resident | null
-  events: CareEvent[]
+  residents: Resident[]
+  initialEvents: CareEvent[]
   facilityId: string
   profileId: string
+  isAdmin: boolean
 }
 
-export function FamilyDashboardClient({ resident, events, facilityId, profileId }: Props) {
+export function FamilyDashboardClient({ residents, initialEvents, facilityId, profileId, isAdmin }: Props) {
+  const [selectedResident, setSelectedResident] = useState<Resident | null>(residents[0] ?? null)
+  const [currentEvents, setCurrentEvents] = useState<CareEvent[]>(initialEvents)
+  const [loadingEvents, setLoadingEvents] = useState(false)
   const [modalState, setModalState] = useState<{
     open: boolean
     event?: CareEvent
@@ -133,7 +138,23 @@ export function FamilyDashboardClient({ resident, events, facilityId, profileId 
   }>({ open: false })
   const [toast, setToast] = useState('')
 
-  const grouped = groupByTime(events)
+  const switchResident = async (residentId: string) => {
+    const next = residents.find((r) => r.id === residentId)
+    if (!next || next.id === selectedResident?.id) return
+    setSelectedResident(next)
+    setLoadingEvents(true)
+    const supabase = createBrowserClient()
+    const { data } = await supabase
+      .from('care_events')
+      .select('*')
+      .eq('resident_id', residentId)
+      .order('occurred_at', { ascending: false })
+      .limit(30)
+    setCurrentEvents(data ?? [])
+    setLoadingEvents(false)
+  }
+
+  const grouped = groupByTime(currentEvents)
 
   const openModal = (event?: CareEvent, type?: 'question' | 'concern') => {
     setModalState({ open: true, event, defaultCategory: type })
@@ -145,7 +166,7 @@ export function FamilyDashboardClient({ resident, events, facilityId, profileId 
     setTimeout(() => setToast(''), 5000)
   }
 
-  if (!resident) {
+  if (residents.length === 0) {
     return (
       <div className="kin-page">
         <nav className="kin-nav">
@@ -164,9 +185,11 @@ export function FamilyDashboardClient({ resident, events, facilityId, profileId 
         <span className="kin-nav__brand">Kin</span>
         <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Family Portal</span>
         <span className="kin-nav__spacer" />
-        <button className="btn btn--primary btn--sm" onClick={() => openModal()}>
-          + Contact care team
-        </button>
+        {selectedResident && (
+          <button className="btn btn--primary btn--sm" onClick={() => openModal()}>
+            + Contact care team
+          </button>
+        )}
       </nav>
 
       <div className="kin-content">
@@ -177,56 +200,85 @@ export function FamilyDashboardClient({ resident, events, facilityId, profileId 
           background: 'var(--color-surface)',
           padding: 20, overflowY: 'auto',
         }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: '50%',
-            background: '#dbeafe', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            fontSize: 28, marginBottom: 12,
-          }}>
-            👤
-          </div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>{resident.full_name}</h2>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-            {resident.room_number ? `Room ${resident.room_number}` : 'Room TBD'}
-          </p>
+          {/* Resident switcher for admin */}
+          {isAdmin && residents.length > 1 && (
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 6 }}>
+                Resident
+              </label>
+              <select
+                className="form-input"
+                style={{ fontSize: 13 }}
+                value={selectedResident?.id ?? ''}
+                onChange={(e) => switchResident(e.target.value)}
+              >
+                {residents.map((r) => (
+                  <option key={r.id} value={r.id}>{r.full_name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-          <div className="kin-card" style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Today's wellbeing</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'var(--color-border)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: '82%', background: '#16a34a', borderRadius: 4 }} />
+          {selectedResident && (
+            <>
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%',
+                background: '#dbeafe', display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                fontSize: 28, marginBottom: 12,
+              }}>
+                👤
               </div>
-              <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 14 }}>82%</span>
-            </div>
-          </div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>{selectedResident.full_name}</h2>
+              <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+                {selectedResident.room_number ? `Room ${selectedResident.room_number}` : 'Room TBD'}
+              </p>
 
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Today
-          </div>
-          {[
-            { label: '🍽️ Meals', value: `${events.filter(e => e.event_type === 'meal').length} logged` },
-            { label: '💊 Meds', value: events.some(e => e.event_type === 'medication') ? 'Administered' : 'None logged' },
-            { label: '🎯 Activities', value: `${events.filter(e => e.event_type === 'activity').length} session(s)` },
-            { label: '🚨 Incidents', value: events.some(e => e.severity === 'incident') ? 'See feed' : 'None' },
-          ].map((row) => (
-            <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--color-border-light)', fontSize: 13 }}>
-              <span>{row.label}</span>
-              <span style={{ color: 'var(--color-text-secondary)' }}>{row.value}</span>
-            </div>
-          ))}
+              <div className="kin-card" style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Today's wellbeing</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'var(--color-border)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: '82%', background: '#16a34a', borderRadius: 4 }} />
+                  </div>
+                  <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 14 }}>82%</span>
+                </div>
+              </div>
+
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Today
+              </div>
+              {[
+                { label: '🍽️ Meals', value: `${currentEvents.filter(e => e.event_type === 'meal').length} logged` },
+                { label: '💊 Meds', value: currentEvents.some(e => e.event_type === 'medication') ? 'Administered' : 'None logged' },
+                { label: '🎯 Activities', value: `${currentEvents.filter(e => e.event_type === 'activity').length} session(s)` },
+                { label: '🚨 Incidents', value: currentEvents.some(e => e.severity === 'incident') ? 'See feed' : 'None' },
+              ].map((row) => (
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--color-border-light)', fontSize: 13 }}>
+                  <span>{row.label}</span>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{row.value}</span>
+                </div>
+              ))}
+            </>
+          )}
         </aside>
 
         {/* Feed */}
         <main style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
-          <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>
-            Care updates for {resident.full_name}
-          </h1>
+          {selectedResident && (
+            <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>
+              Care updates for {selectedResident.full_name}
+            </h1>
+          )}
 
-          {grouped.length === 0 && (
+          {loadingEvents && (
+            <div style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>Loading events…</div>
+          )}
+
+          {!loadingEvents && grouped.length === 0 && (
             <div style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>No care events yet.</div>
           )}
 
-          {grouped.map((group) => (
+          {!loadingEvents && grouped.map((group) => (
             <div key={group.label} style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: 'var(--color-text-muted)', marginBottom: 10 }}>
                 {group.label}
@@ -239,10 +291,10 @@ export function FamilyDashboardClient({ resident, events, facilityId, profileId 
         </main>
       </div>
 
-      {modalState.open && resident && (
+      {modalState.open && selectedResident && (
         <EscalateModal
-          residentId={resident.id}
-          residentName={resident.full_name}
+          residentId={selectedResident.id}
+          residentName={selectedResident.full_name}
           facilityId={facilityId}
           createdBy={profileId}
           linkedEvent={modalState.event}

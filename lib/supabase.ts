@@ -3,9 +3,7 @@
 // ================================================================
 
 import { createBrowserClient as _createBrowserClient } from '@supabase/ssr'
-import { createServerClient as _createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import type {
   Ticket,
   TicketMessage,
@@ -34,31 +32,7 @@ export function createBrowserClient() {
 }
 
 // ----------------------------------------------------------------
-// 2. Server client — for server components / route handlers
-//    Uses cookies() for session management
-// ----------------------------------------------------------------
-export async function createServerClient() {
-  const cookieStore = await cookies()
-  return _createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
-        } catch {
-          // setAll called from a Server Component — safe to ignore
-        }
-      },
-    },
-  })
-}
-
-// ----------------------------------------------------------------
-// 3. Service client — bypasses RLS, for webhook/admin routes
+// 2. Service client — bypasses RLS, for webhook/admin routes
 // ----------------------------------------------------------------
 export function createServiceClient() {
   return createClient(supabaseUrl, supabaseServiceKey, {

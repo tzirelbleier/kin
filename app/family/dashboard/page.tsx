@@ -1,37 +1,58 @@
-import { createServiceClient } from '@/lib/supabase'
+import { redirect } from 'next/navigation'
+import { createServerClient, getCurrentProfile } from '@/lib/supabase-server'
 import { FamilyDashboardClient } from './client'
+import type { Resident, CareEvent } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 export default async function FamilyDashboardPage() {
-  const supabase = createServiceClient()
+  const profile = await getCurrentProfile()
+  if (!profile) redirect('/login')
 
-  // Fetch first active resident (pre-auth: Eleanor Whitmore from seed)
-  const { data: residents } = await supabase
-    .from('residents')
-    .select('*')
-    .eq('facility_id', 'a1b2c3d4-0001-0001-0001-000000000001')
-    .eq('is_active', true)
-    .order('full_name')
+  const supabase = await createServerClient()
+  const isAdmin = profile.role === 'admin' || profile.role === 'director'
 
-  const resident = residents?.[0] ?? null
+  let residents: Resident[] = []
 
-  // Fetch care events for that resident
-  const { data: events } = resident
+  if (isAdmin) {
+    // Admin/director: see all active residents in the facility
+    const { data } = await supabase
+      .from('residents')
+      .select('*')
+      .eq('facility_id', profile.facility_id)
+      .eq('is_active', true)
+      .order('full_name')
+    residents = (data ?? []) as Resident[]
+  } else {
+    // Family: see only linked residents via family_residents join
+    const { data: links } = await supabase
+      .from('family_residents')
+      .select('resident:residents(*)')
+      .eq('profile_id', profile.id)
+    residents = ((links ?? []) as unknown as { resident: Resident }[])
+      .map((l) => l.resident)
+      .filter(Boolean)
+  }
+
+  const firstResident = residents[0] ?? null
+
+  // Fetch care events for the first resident
+  const { data: events } = firstResident
     ? await supabase
         .from('care_events')
         .select('*')
-        .eq('resident_id', resident.id)
+        .eq('resident_id', firstResident.id)
         .order('occurred_at', { ascending: false })
         .limit(30)
     : { data: [] }
 
   return (
     <FamilyDashboardClient
-      resident={resident}
-      events={events ?? []}
-      facilityId="a1b2c3d4-0001-0001-0001-000000000001"
-      profileId="demo-family-user"
+      residents={residents}
+      initialEvents={(events ?? []) as CareEvent[]}
+      facilityId={profile.facility_id}
+      profileId={profile.id}
+      isAdmin={isAdmin}
     />
   )
 }

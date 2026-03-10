@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { getCurrentProfile } from "@/lib/supabase-server";
+import { AdminNav } from "@/components/AdminNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,14 +19,18 @@ export const metadata: Metadata = {
   description: "Automated family communication for Assisted Living Facilities",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const profile = await getCurrentProfile();
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'director';
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        {isAdmin && <AdminNav />}
         {children}
       </body>
     </html>
