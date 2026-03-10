@@ -26,7 +26,7 @@ const DEMO_USERS = [
     resident_links: [] as string[],
   },
   {
-    email: 'sarah.whitmore@demo.kin',
+    email: 'sarah.whitmore@demo-idene',
     password: 'Demo1234!',
     full_name: 'Sarah Whitmore',
     role: 'family' as const,
@@ -35,7 +35,7 @@ const DEMO_USERS = [
     relationship: 'Daughter',
   },
   {
-    email: 'tom.jennings@demo.kin',
+    email: 'tom.jennings@demo-idene',
     password: 'Demo1234!',
     full_name: 'Tom Jennings',
     role: 'family' as const,

@@ -7,8 +7,8 @@ import { createBrowserClient } from '@/lib/supabase'
 const DEMO_ACCOUNTS = [
   { label: 'Admin / Director', email: 'admin@sunrisegardens.com', password: 'Demo1234!' },
   { label: 'Nurse', email: 'nurse@sunrisegardens.com', password: 'Demo1234!' },
-  { label: "Sarah (Eleanor's family)", email: 'sarah.whitmore@demo.kin', password: 'Demo1234!' },
-  { label: "Tom (Harold's family)", email: 'tom.jennings@demo.kin', password: 'Demo1234!' },
+  { label: "Sarah (Eleanor's family)", email: 'sarah.whitmore@demo-idene', password: 'Demo1234!' },
+  { label: "Tom (Harold's family)", email: 'tom.jennings@demo-idene', password: 'Demo1234!' },
 ]
 
 function roleToPath(role?: string | null): string {
