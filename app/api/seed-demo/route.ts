@@ -46,6 +46,12 @@ const DEMO_USERS = [
 ]
 
 export async function POST(request: Request) {
+  // Verify shared secret
+  const secret = request.headers.get('x-webhook-secret')
+  if (!secret || secret !== process.env.WEBHOOK_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const supabase = createServiceClient()
   const results: { email: string; status: string; detail?: string }[] = []
 
