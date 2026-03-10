@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase'
 
 const DEMO_ACCOUNTS = [
@@ -23,7 +23,6 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
   const searchParams = useSearchParams()
   const nextPath = searchParams.get('next')
 
@@ -50,8 +49,8 @@ function LoginForm() {
       .single()
 
     const dest = nextPath ?? roleToPath(profile?.role)
-    router.push(dest)
-    router.refresh()
+    // Full page reload ensures session cookie is flushed before middleware runs
+    window.location.href = dest
   }
 
   const fillDemo = (acc: typeof DEMO_ACCOUNTS[number]) => {

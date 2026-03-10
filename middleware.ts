@@ -57,7 +57,9 @@ export async function middleware(request: NextRequest) {
         .select('role')
         .eq('id', user.id)
         .single()
-      return NextResponse.redirect(new URL(roleToPath(profile?.role), request.url))
+      // If profile is missing, let them stay on /login (avoids redirect loop)
+      if (!profile) return response
+      return NextResponse.redirect(new URL(roleToPath(profile.role), request.url))
     }
     return response
   }
