@@ -16,7 +16,7 @@ export function AdminNav() {
   }
 
   const links = [
-    { href: '/family/dashboard', label: 'Family View', icon: '👨‍👩‍👧' },
+    { href: '/family/dashboard?returnTo=/admin/dashboard', label: 'Family View', icon: '👨‍👩‍👧' },
     { href: '/staff/tickets', label: 'Staff Tickets', icon: '🎫' },
     { href: '/admin/dashboard', label: 'Admin Dashboard', icon: '📊' },
   ]

@@ -6,19 +6,26 @@ import type { Resident, CareEvent } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-export default async function FamilyDashboardPage() {
+export default async function FamilyDashboardPage({
+  searchParams,
+}: {
+  searchParams: { returnTo?: string }
+}) {
   const profile = await getCurrentProfile()
   if (!profile) redirect('/login')
 
   const supabase = createServiceClient()
   const isAdmin = profile.role === 'admin' || profile.role === 'director'
   const isStaff = profile.role === 'staff' || profile.role === 'nurse'
-  const readOnly = isStaff // staff/nurse can view but cannot raise concerns or ask questions
+  const readOnly = isStaff
+
+  // Determine back-link for non-family users
+  const returnTo = searchParams.returnTo ??
+    (isStaff ? '/staff/tickets' : isAdmin ? '/admin/dashboard' : null)
 
   let residents: Resident[] = []
 
   if (isAdmin || isStaff) {
-    // Admin/director/staff/nurse: see all active residents in the facility
     const { data } = await supabase
       .from('residents')
       .select('*')
@@ -27,7 +34,6 @@ export default async function FamilyDashboardPage() {
       .order('full_name')
     residents = (data ?? []) as Resident[]
   } else {
-    // Family: see only linked residents via family_residents join
     const { data: links } = await supabase
       .from('family_residents')
       .select('resident:residents(*)')
@@ -45,7 +51,7 @@ export default async function FamilyDashboardPage() {
         .select('*')
         .eq('resident_id', firstResident.id)
         .order('occurred_at', { ascending: false })
-        .limit(30)
+        .limit(100)
     : { data: [] }
 
   return (
@@ -56,6 +62,7 @@ export default async function FamilyDashboardPage() {
       profileId={profile.id}
       isAdmin={isAdmin || isStaff}
       readOnly={readOnly}
+      returnTo={returnTo}
     />
   )
 }
