@@ -1,5 +1,5 @@
 // ================================================================
-// Kin — Auth callback handler (magic links / OAuth)
+// Idene — Auth callback handler (magic links / OAuth)
 // ================================================================
 
 import { NextResponse } from 'next/server'

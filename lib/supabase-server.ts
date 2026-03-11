@@ -1,5 +1,5 @@
 // ================================================================
-// Kin — Server-only Supabase helpers
+// Idene — Server-only Supabase helpers
 // Import only from Server Components, Route Handlers, and middleware.
 // Never import from 'use client' files.
 // ================================================================

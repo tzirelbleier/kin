@@ -97,7 +97,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
     return (
       <div className="kin-page">
         <nav className="kin-nav kin-nav--dark">
-          <span className="kin-nav__brand">Kin</span>
+          <span className="kin-nav__brand">Idene</span>
           <span style={{ fontSize: 13, color: '#9ca3af' }}>Staff Portal</span>
           <span className="kin-nav__spacer" />
           <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid #374151', color: '#9ca3af' }} onClick={signOut}>Sign out</button>
@@ -113,7 +113,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
   return (
     <div className="kin-page">
       <nav className="kin-nav kin-nav--dark">
-        <span className="kin-nav__brand">Kin</span>
+        <span className="kin-nav__brand">Idene</span>
         <span style={{ fontSize: 13, color: '#9ca3af' }}>Staff Portal</span>
         <span className="kin-nav__spacer" />
         {overdueCount > 0 && <span className="chip chip--urgent">{overdueCount} overdue</span>}

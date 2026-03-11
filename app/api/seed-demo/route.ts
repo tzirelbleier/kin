@@ -1,5 +1,5 @@
 // ================================================================
-// Kin — Seed demo users + profiles + family_residents
+// Idene — Seed demo users + profiles + family_residents
 // POST /api/seed-demo
 // Requires header: x-webhook-secret: <WEBHOOK_SECRET>
 // Run once before the demo.

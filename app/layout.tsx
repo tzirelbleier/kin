@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kin — Family Transparency Platform",
+  title: "Idene — Family Transparency Platform",
   description: "Automated family communication for Assisted Living Facilities",
 };
 

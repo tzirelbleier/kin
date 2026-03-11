@@ -1,5 +1,5 @@
 // ================================================================
-// Kin — Excel import parsing + validation (pure, browser-safe)
+// Idene — Excel import parsing + validation (pure, browser-safe)
 // ================================================================
 
 import * as XLSX from 'xlsx'
@@ -149,5 +149,5 @@ export function downloadTemplate() {
   ws['!cols'] = [{ wch: 20 }, { wch: 14 }, { wch: 30 }, { wch: 45 }, { wch: 22 }, { wch: 12 }]
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Care Events')
-  XLSX.writeFile(wb, 'kin-care-events-template.xlsx')
+  XLSX.writeFile(wb, 'idene-care-events-template.xlsx')
 }

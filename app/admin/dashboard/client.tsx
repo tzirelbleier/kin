@@ -83,7 +83,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId }: 
   return (
     <div className="kin-page">
       <nav className="kin-nav kin-nav--dark">
-        <span className="kin-nav__brand">Kin</span>
+        <span className="kin-nav__brand">Idene</span>
         <span style={{ fontSize: 13, color: '#9ca3af' }}>Admin · Sunrise Gardens</span>
         <span className="kin-nav__spacer" />
         <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>AD</div>

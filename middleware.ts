@@ -1,5 +1,5 @@
 // ================================================================
-// Kin — Auth middleware + role-based route protection
+// Idene — Auth middleware + role-based route protection
 // ================================================================
 
 import { createServerClient } from '@supabase/ssr'

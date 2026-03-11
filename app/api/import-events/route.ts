@@ -1,5 +1,5 @@
 // ================================================================
-// Kin — Excel import API route
+// Idene — Excel import API route
 // POST /api/import-events
 // Authenticated: admin or director only
 // ================================================================

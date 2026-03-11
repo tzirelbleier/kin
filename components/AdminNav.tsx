@@ -36,7 +36,7 @@ export function AdminNav() {
       fontSize: 13,
     }}>
       <span style={{ color: '#94a3b8', fontWeight: 700, marginRight: 8, letterSpacing: '-0.3px' }}>
-        Kin Admin
+        Idene Admin
       </span>
 
       <div style={{ display: 'flex', gap: 2, flex: 1 }}>

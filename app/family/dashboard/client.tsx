@@ -175,7 +175,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
     return (
       <div className="kin-page">
         <nav className="kin-nav">
-          <span className="kin-nav__brand">Kin</span>
+          <span className="kin-nav__brand">Idene</span>
         </nav>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
           No residents found.
@@ -187,7 +187,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
   return (
     <div className="kin-page">
       <nav className="kin-nav">
-        <span className="kin-nav__brand">Kin</span>
+        <span className="kin-nav__brand">Idene</span>
         <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Family Portal</span>
         <span className="kin-nav__spacer" />
         {selectedResident && (

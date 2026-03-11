@@ -84,7 +84,7 @@ function LoginForm() {
           }}>
             🤝
           </div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Kin</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Idene</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>
             Family Transparency Platform
           </p>

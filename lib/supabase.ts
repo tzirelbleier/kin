@@ -1,5 +1,5 @@
 // ================================================================
-// Kin — Supabase clients + typed query helpers
+// Idene — Supabase clients + typed query helpers
 // ================================================================
 
 import { createBrowserClient as _createBrowserClient } from '@supabase/ssr'

@@ -1,5 +1,5 @@
 // ============================================================
-// Kin — Type definitions + routing rules
+// Idene — Type definitions + routing rules
 // Single source of truth. Import from here everywhere.
 // ============================================================
 
