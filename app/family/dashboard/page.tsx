@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
-import { createServerClient, getCurrentProfile } from '@/lib/supabase-server'
+import { getCurrentProfile } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import { FamilyDashboardClient } from './client'
 import type { Resident, CareEvent } from '@/types'
 
@@ -9,7 +10,7 @@ export default async function FamilyDashboardPage() {
   const profile = await getCurrentProfile()
   if (!profile) redirect('/login')
 
-  const supabase = await createServerClient()
+  const supabase = createServiceClient()
   const isAdmin = profile.role === 'admin' || profile.role === 'director'
 
   let residents: Resident[] = []

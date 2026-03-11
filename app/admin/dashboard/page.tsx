@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
-import { createServerClient, getCurrentProfile } from '@/lib/supabase-server'
+import { getCurrentProfile } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import { AdminDashboardClient } from './client'
 
 export const dynamic = 'force-dynamic'
@@ -8,7 +9,7 @@ export default async function AdminDashboardPage() {
   const profile = await getCurrentProfile()
   if (!profile) redirect('/login')
 
-  const supabase = await createServerClient()
+  const supabase = createServiceClient()
   const facilityId = profile.facility_id
 
   const [ticketsRes, eventsRes, auditRes] = await Promise.all([

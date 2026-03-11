@@ -5,11 +5,13 @@
 // ================================================================
 
 import { createServerClient as _createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { Profile } from '@/types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // Server client — uses cookies() for session management
 export async function createServerClient() {
@@ -32,13 +34,18 @@ export async function createServerClient() {
   })
 }
 
-// getCurrentProfile — reads session + joins profiles table
+// getCurrentProfile — verifies session then fetches profile via service role
+// (service role bypasses the recursive RLS policy on the profiles table)
 export async function getCurrentProfile(): Promise<Profile | null> {
   try {
     const supabase = await createServerClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
-    const { data: profile } = await supabase
+    // Use service role to avoid recursive RLS stack overflow
+    const service = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+    const { data: profile } = await service
       .from('profiles')
       .select('*')
       .eq('id', user.id)
