@@ -54,8 +54,15 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
     return true
   })
 
+  // Auto-select first visible ticket when filters change
+  useEffect(() => {
+    if (!filtered.find((t) => t.id === selectedId)) {
+      setSelectedId(filtered[0]?.id ?? null)
+    }
+  }, [statusFilter, mineOnly, urgentOnly])
+
   const overdueCount = tickets.filter((t) => isOverdue(t.due_by)).length
-  const selected = tickets.find((t) => t.id === selectedId) ?? null
+  const selected = filtered.find((t) => t.id === selectedId) ?? null
   const threadMessages = selected
     ? [...(selected.messages ?? []), ...(localMessages[selected.id] ?? [])]
     : []
