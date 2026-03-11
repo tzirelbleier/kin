@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { PRIORITY_ROUTING, STATUS_LABELS } from '@/types'
-import type { Ticket, TicketCategory, TicketPriority, TicketStatus, UserRole, Profile, RoutingRule } from '@/types'
+import type { Ticket, TicketCategory, TicketPriority, TicketStatus, UserRole, Profile, RoutingRule, ScheduleItem, Appointment, FacilityMenu } from '@/types'
 import { ExcelImportTab } from '@/components/admin/ExcelImportTab'
 
-type Tab = 'reports' | 'tickets' | 'routing' | 'users' | 'audit' | 'import' | 'integrations'
+type Tab = 'reports' | 'tickets' | 'routing' | 'users' | 'planning' | 'audit' | 'import' | 'integrations'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'reports', label: 'Reports' },
   { id: 'tickets', label: 'Tickets' },
   { id: 'routing', label: 'Routing' },
   { id: 'users', label: 'Users' },
+  { id: 'planning', label: '📅 Planning' },
   { id: 'audit', label: 'Audit Log' },
   { id: 'import', label: '📊 Import' },
   { id: 'integrations', label: '🔌 Integrations' },
@@ -314,6 +315,423 @@ function UsersTab({ initialProfiles }: { initialProfiles: Profile[] }) {
             <div className="modal__footer">
               <button className="btn btn--secondary" onClick={() => setModal(null)}>Cancel</button>
               <button className="btn btn--primary" disabled={submitting || !form.full_name || (modal.kind === 'create' && !form.email)} onClick={submit}>{submitting ? 'Saving…' : modal.kind === 'create' ? 'Create user' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ----------------------------------------------------------------
+// Planning tab — schedule / appointments / menus management
+// ----------------------------------------------------------------
+
+type PlanningSubTab = 'appointments' | 'schedule' | 'menus'
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
+
+function PlanningTab({ residents }: { residents: { id: string; full_name: string; room_number: string | null }[] }) {
+  const [subTab, setSubTab] = useState<PlanningSubTab>('appointments')
+  const [residentId, setResidentId] = useState<string>(residents[0]?.id ?? '')
+
+  // Appointments state
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [apptLoading, setApptLoading] = useState(false)
+  const [apptModal, setApptModal] = useState<null | Partial<Appointment>>(null)
+  const [apptSaving, setApptSaving] = useState(false)
+
+  // Schedule state
+  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([])
+  const [schedLoading, setSchedLoading] = useState(false)
+  const [schedModal, setSchedModal] = useState<null | Partial<ScheduleItem>>(null)
+  const [schedSaving, setSchedSaving] = useState(false)
+
+  // Menus state
+  const [menus, setMenus] = useState<FacilityMenu[]>([])
+  const [menuLoading, setMenuLoading] = useState(false)
+  const [menuModal, setMenuModal] = useState<null | Partial<FacilityMenu>>(null)
+  const [menuSaving, setMenuSaving] = useState(false)
+  const [menuWeekOffset, setMenuWeekOffset] = useState(0)
+
+  useEffect(() => {
+    if (!residentId) return
+    if (subTab === 'appointments') loadAppointments()
+    if (subTab === 'schedule') loadSchedule()
+    if (subTab === 'menus') loadMenus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [residentId, subTab, menuWeekOffset])
+
+  async function loadAppointments() {
+    setApptLoading(true)
+    const r = await fetch(`/api/appointments?resident_id=${residentId}`)
+    const d = await r.json()
+    setAppointments(Array.isArray(d) ? d : [])
+    setApptLoading(false)
+  }
+
+  async function loadSchedule() {
+    setSchedLoading(true)
+    const r = await fetch(`/api/schedule?resident_id=${residentId}`)
+    const d = await r.json()
+    setScheduleItems(Array.isArray(d) ? d : [])
+    setSchedLoading(false)
+  }
+
+  async function loadMenus() {
+    setMenuLoading(true)
+    const monday = getMondayOfWeek(menuWeekOffset)
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
+    const from = monday.toISOString().slice(0, 10)
+    const to = sunday.toISOString().slice(0, 10)
+    const r = await fetch(`/api/menus?resident_id=${residentId}&from=${from}&to=${to}`)
+    const d = await r.json()
+    setMenus(Array.isArray(d) ? d : [])
+    setMenuLoading(false)
+  }
+
+  function getMondayOfWeek(offset: number): Date {
+    const now = new Date()
+    const day = now.getDay()
+    const diff = (day === 0 ? -6 : 1 - day)
+    const mon = new Date(now)
+    mon.setHours(0, 0, 0, 0)
+    mon.setDate(now.getDate() + diff + offset * 7)
+    return mon
+  }
+
+  async function saveAppointment() {
+    if (!apptModal) return
+    setApptSaving(true)
+    const isNew = !apptModal.id
+    const method = isNew ? 'POST' : 'PATCH'
+    const url = isNew ? '/api/appointments' : `/api/appointments?id=${apptModal.id}`
+    const body = isNew
+      ? { resident_id: residentId, scheduled_at: apptModal.scheduled_at, title: apptModal.title, description: apptModal.description, location: apptModal.location, appointment_type: apptModal.appointment_type || 'appointment' }
+      : { scheduled_at: apptModal.scheduled_at, title: apptModal.title, description: apptModal.description, location: apptModal.location, appointment_type: apptModal.appointment_type, status: apptModal.status }
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    if (r.ok) { setApptModal(null); loadAppointments() }
+    setApptSaving(false)
+  }
+
+  async function deleteAppointment(id: string) {
+    if (!confirm('Delete this appointment?')) return
+    await fetch(`/api/appointments?id=${id}`, { method: 'DELETE' })
+    loadAppointments()
+  }
+
+  async function saveScheduleItem() {
+    if (!schedModal) return
+    setSchedSaving(true)
+    const isNew = !schedModal.id
+    const method = isNew ? 'POST' : 'PATCH'
+    const url = isNew ? '/api/schedule' : `/api/schedule?id=${schedModal.id}`
+    const body = isNew
+      ? { resident_id: residentId || null, day_of_week: schedModal.day_of_week, start_time: schedModal.start_time, end_time: schedModal.end_time || null, title: schedModal.title, description: schedModal.description || null, category: schedModal.category || 'activity' }
+      : { day_of_week: schedModal.day_of_week, start_time: schedModal.start_time, end_time: schedModal.end_time || null, title: schedModal.title, description: schedModal.description || null, category: schedModal.category }
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    if (r.ok) { setSchedModal(null); loadSchedule() }
+    setSchedSaving(false)
+  }
+
+  async function deleteScheduleItem(id: string) {
+    if (!confirm('Delete this schedule item?')) return
+    await fetch(`/api/schedule?id=${id}`, { method: 'DELETE' })
+    loadSchedule()
+  }
+
+  async function saveMenu() {
+    if (!menuModal) return
+    setMenuSaving(true)
+    const isNew = !menuModal.id
+    const method = isNew ? 'POST' : 'PATCH'
+    const url = isNew ? '/api/menus' : `/api/menus?id=${menuModal.id}`
+    const body = isNew
+      ? { resident_id: residentId || null, date: menuModal.date, meal_type: menuModal.meal_type, title: menuModal.title, description: menuModal.description || null }
+      : { date: menuModal.date, meal_type: menuModal.meal_type, title: menuModal.title, description: menuModal.description || null }
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    if (r.ok) { setMenuModal(null); loadMenus() }
+    setMenuSaving(false)
+  }
+
+  async function deleteMenu(id: string) {
+    if (!confirm('Delete this menu item?')) return
+    await fetch(`/api/menus?id=${id}`, { method: 'DELETE' })
+    loadMenus()
+  }
+
+  const monday = getMondayOfWeek(menuWeekOffset)
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday); d.setDate(monday.getDate() + i); return d
+  })
+
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13 }
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 4 }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Resident selector */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <label style={{ fontSize: 13, fontWeight: 600 }}>Resident:</label>
+        <select value={residentId} onChange={e => setResidentId(e.target.value)} style={{ padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13 }}>
+          {residents.map(r => <option key={r.id} value={r.id}>{r.full_name}{r.room_number ? ` (Rm ${r.room_number})` : ''}</option>)}
+        </select>
+      </div>
+
+      {/* Sub-tabs */}
+      <div style={{ display: 'flex', gap: 4 }}>
+        {(['appointments', 'schedule', 'menus'] as PlanningSubTab[]).map(st => (
+          <button key={st} onClick={() => setSubTab(st)} style={{ padding: '6px 16px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: subTab === st ? 'var(--color-primary)' : 'var(--color-bg-secondary)', color: subTab === st ? '#fff' : 'var(--color-text)' }}>
+            {st.charAt(0).toUpperCase() + st.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* APPOINTMENTS */}
+      {subTab === 'appointments' && (
+        <div className="kin-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border-light)' }}>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Appointments</div>
+            <button className="btn btn--primary btn--sm" onClick={() => setApptModal({ appointment_type: 'appointment', status: 'scheduled' })}>+ Add appointment</button>
+          </div>
+          {apptLoading ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>Loading…</div> : (
+            appointments.length === 0 ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>No appointments.</div> : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: 'var(--color-bg-secondary)' }}>
+                    {['Date & Time', 'Title', 'Type', 'Location', 'Status', ''].map(h => (
+                      <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map(a => (
+                    <tr key={a.id} style={{ borderTop: '1px solid var(--color-border-light)' }}>
+                      <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>{new Date(a.scheduled_at).toLocaleString('en', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
+                      <td style={{ padding: '10px 16px' }}>{a.title}</td>
+                      <td style={{ padding: '10px 16px', color: 'var(--color-text-secondary)' }}>{a.appointment_type}</td>
+                      <td style={{ padding: '10px 16px', color: 'var(--color-text-secondary)' }}>{a.location ?? '—'}</td>
+                      <td style={{ padding: '10px 16px' }}><span style={{ padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 600, background: a.status === 'scheduled' ? '#dbeafe' : '#f3f4f6', color: a.status === 'scheduled' ? '#1d4ed8' : '#6b7280' }}>{a.status}</span></td>
+                      <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                        <button className="btn btn--secondary btn--sm" onClick={() => setApptModal(a)} style={{ marginRight: 6 }}>Edit</button>
+                        <button className="btn btn--secondary btn--sm" style={{ color: '#ef4444' }} onClick={() => deleteAppointment(a.id)}>Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          )}
+        </div>
+      )}
+
+      {/* SCHEDULE */}
+      {subTab === 'schedule' && (
+        <div className="kin-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border-light)' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>Weekly Schedule</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>Recurring weekly activities (leave resident blank for facility-wide)</div>
+            </div>
+            <button className="btn btn--primary btn--sm" onClick={() => setSchedModal({ day_of_week: 1, category: 'activity' })}>+ Add item</button>
+          </div>
+          {schedLoading ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>Loading…</div> : (
+            scheduleItems.length === 0 ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>No schedule items.</div> : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: 'var(--color-bg-secondary)' }}>
+                    {['Day', 'Time', 'Title', 'Category', 'Scope', ''].map(h => (
+                      <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--color-text-secondary)' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {scheduleItems.sort((a, b) => a.day_of_week - b.day_of_week || a.start_time.localeCompare(b.start_time)).map(s => (
+                    <tr key={s.id} style={{ borderTop: '1px solid var(--color-border-light)' }}>
+                      <td style={{ padding: '10px 16px', fontWeight: 600 }}>{DAY_NAMES[s.day_of_week]}</td>
+                      <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>{s.start_time.slice(0, 5)}{s.end_time ? ` – ${s.end_time.slice(0, 5)}` : ''}</td>
+                      <td style={{ padding: '10px 16px' }}>{s.title}</td>
+                      <td style={{ padding: '10px 16px', color: 'var(--color-text-secondary)' }}>{s.category}</td>
+                      <td style={{ padding: '10px 16px' }}><span style={{ padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 600, background: s.resident_id ? '#ede9fe' : '#f0fdf4', color: s.resident_id ? '#6d28d9' : '#15803d' }}>{s.resident_id ? 'Resident' : 'Facility'}</span></td>
+                      <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                        <button className="btn btn--secondary btn--sm" onClick={() => setSchedModal(s)} style={{ marginRight: 6 }}>Edit</button>
+                        <button className="btn btn--secondary btn--sm" style={{ color: '#ef4444' }} onClick={() => deleteScheduleItem(s.id)}>Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          )}
+        </div>
+      )}
+
+      {/* MENUS */}
+      {subTab === 'menus' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <button className="btn btn--secondary btn--sm" onClick={() => setMenuWeekOffset(o => o - 1)}>← Prev week</button>
+            <span style={{ fontWeight: 600, fontSize: 14 }}>
+              {monday.toLocaleDateString('en', { month: 'short', day: 'numeric' })} – {weekDates[6].toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
+            <button className="btn btn--secondary btn--sm" onClick={() => setMenuWeekOffset(o => o + 1)}>Next week →</button>
+            <button className="btn btn--primary btn--sm" style={{ marginLeft: 'auto' }} onClick={() => setMenuModal({ date: new Date().toISOString().slice(0, 10), meal_type: 'lunch' })}>+ Add meal</button>
+          </div>
+          {menuLoading ? <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>Loading…</div> : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+              {weekDates.map((date, di) => {
+                const dateStr = date.toISOString().slice(0, 10)
+                const dayMenus = menus.filter(m => m.date === dateStr)
+                const isToday = dateStr === new Date().toISOString().slice(0, 10)
+                return (
+                  <div key={dateStr} className="kin-card" style={{ padding: 12, minHeight: 120, background: isToday ? '#eff6ff' : undefined, borderColor: isToday ? '#93c5fd' : undefined }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8 }}>{DAY_NAMES[(di + 1) % 7]}<br /><span style={{ fontWeight: 400, color: 'var(--color-text-secondary)' }}>{date.toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span></div>
+                    {MEAL_TYPES.map(mt => {
+                      const item = dayMenus.find(m => m.meal_type === mt)
+                      return (
+                        <div key={mt} style={{ marginBottom: 6 }}>
+                          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 2 }}>{mt}</div>
+                          {item ? (
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                              <span style={{ fontSize: 12, flex: 1 }}>{item.title}</span>
+                              <button onClick={() => setMenuModal(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-muted)', padding: 0, flexShrink: 0 }}>✏️</button>
+                              <button onClick={() => deleteMenu(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#ef4444', padding: 0, flexShrink: 0 }}>×</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setMenuModal({ date: dateStr, meal_type: mt })} style={{ background: 'none', border: '1px dashed var(--color-border)', borderRadius: 4, cursor: 'pointer', fontSize: 11, color: 'var(--color-text-muted)', padding: '2px 6px', width: '100%', textAlign: 'left' }}>+ add</button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* APPOINTMENT MODAL */}
+      {apptModal !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="kin-card" style={{ width: 460, maxWidth: '90vw', padding: 28 }}>
+            <h3 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700 }}>{apptModal.id ? 'Edit Appointment' : 'New Appointment'}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={labelStyle}>Title *</label>
+                <input style={inputStyle} value={apptModal.title ?? ''} onChange={e => setApptModal(m => m ? { ...m, title: e.target.value } : m)} placeholder="e.g. Doctor visit" />
+              </div>
+              <div>
+                <label style={labelStyle}>Date & Time *</label>
+                <input type="datetime-local" style={inputStyle} value={apptModal.scheduled_at ? apptModal.scheduled_at.slice(0, 16) : ''} onChange={e => setApptModal(m => m ? { ...m, scheduled_at: e.target.value + ':00' } : m)} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Type</label>
+                  <select style={inputStyle} value={apptModal.appointment_type ?? 'appointment'} onChange={e => setApptModal(m => m ? { ...m, appointment_type: e.target.value } : m)}>
+                    {['appointment', 'checkup', 'therapy', 'specialist', 'other'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Status</label>
+                  <select style={inputStyle} value={apptModal.status ?? 'scheduled'} onChange={e => setApptModal(m => m ? { ...m, status: e.target.value } : m)}>
+                    {['scheduled', 'completed', 'cancelled', 'no_show'].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Location</label>
+                <input style={inputStyle} value={apptModal.location ?? ''} onChange={e => setApptModal(m => m ? { ...m, location: e.target.value } : m)} placeholder="e.g. Cardiology clinic, 3rd floor" />
+              </div>
+              <div>
+                <label style={labelStyle}>Notes</label>
+                <textarea style={{ ...inputStyle, minHeight: 72, resize: 'vertical' }} value={apptModal.description ?? ''} onChange={e => setApptModal(m => m ? { ...m, description: e.target.value } : m)} placeholder="Additional notes…" />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
+              <button className="btn btn--secondary" onClick={() => setApptModal(null)}>Cancel</button>
+              <button className="btn btn--primary" onClick={saveAppointment} disabled={apptSaving || !apptModal.title || !apptModal.scheduled_at}>{apptSaving ? 'Saving…' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SCHEDULE MODAL */}
+      {schedModal !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="kin-card" style={{ width: 460, maxWidth: '90vw', padding: 28 }}>
+            <h3 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700 }}>{schedModal.id ? 'Edit Schedule Item' : 'New Schedule Item'}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={labelStyle}>Title *</label>
+                <input style={inputStyle} value={schedModal.title ?? ''} onChange={e => setSchedModal(m => m ? { ...m, title: e.target.value } : m)} placeholder="e.g. Morning exercise" />
+              </div>
+              <div>
+                <label style={labelStyle}>Day of Week *</label>
+                <select style={inputStyle} value={schedModal.day_of_week ?? 1} onChange={e => setSchedModal(m => m ? { ...m, day_of_week: Number(e.target.value) } : m)}>
+                  {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Start Time *</label>
+                  <input type="time" style={inputStyle} value={schedModal.start_time ?? ''} onChange={e => setSchedModal(m => m ? { ...m, start_time: e.target.value } : m)} />
+                </div>
+                <div>
+                  <label style={labelStyle}>End Time</label>
+                  <input type="time" style={inputStyle} value={schedModal.end_time ?? ''} onChange={e => setSchedModal(m => m ? { ...m, end_time: e.target.value || null } : m)} />
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Category</label>
+                <select style={inputStyle} value={schedModal.category ?? 'activity'} onChange={e => setSchedModal(m => m ? { ...m, category: e.target.value } : m)}>
+                  {['activity', 'therapy', 'medical', 'social', 'meal', 'exercise', 'other'].map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Description</label>
+                <textarea style={{ ...inputStyle, minHeight: 64, resize: 'vertical' }} value={schedModal.description ?? ''} onChange={e => setSchedModal(m => m ? { ...m, description: e.target.value } : m)} placeholder="Optional details…" />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
+              <button className="btn btn--secondary" onClick={() => setSchedModal(null)}>Cancel</button>
+              <button className="btn btn--primary" onClick={saveScheduleItem} disabled={schedSaving || !schedModal.title || !schedModal.start_time}>{schedSaving ? 'Saving…' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MENU MODAL */}
+      {menuModal !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="kin-card" style={{ width: 400, maxWidth: '90vw', padding: 28 }}>
+            <h3 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700 }}>{menuModal.id ? 'Edit Meal' : 'Add Meal'}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Date *</label>
+                  <input type="date" style={inputStyle} value={menuModal.date ?? ''} onChange={e => setMenuModal(m => m ? { ...m, date: e.target.value } : m)} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Meal *</label>
+                  <select style={inputStyle} value={menuModal.meal_type ?? 'lunch'} onChange={e => setMenuModal(m => m ? { ...m, meal_type: e.target.value } : m)}>
+                    {MEAL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Item / Dish *</label>
+                <input style={inputStyle} value={menuModal.title ?? ''} onChange={e => setMenuModal(m => m ? { ...m, title: e.target.value } : m)} placeholder="e.g. Grilled salmon with vegetables" />
+              </div>
+              <div>
+                <label style={labelStyle}>Description / Notes</label>
+                <textarea style={{ ...inputStyle, minHeight: 64, resize: 'vertical' }} value={menuModal.description ?? ''} onChange={e => setMenuModal(m => m ? { ...m, description: e.target.value } : m)} placeholder="Allergen info, preparation notes…" />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
+              <button className="btn btn--secondary" onClick={() => setMenuModal(null)}>Cancel</button>
+              <button className="btn btn--primary" onClick={saveMenu} disabled={menuSaving || !menuModal.title || !menuModal.date || !menuModal.meal_type}>{menuSaving ? 'Saving…' : 'Save'}</button>
             </div>
           </div>
         </div>
@@ -832,6 +1250,9 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
 
         {/* USERS */}
         {tab === 'users' && <UsersTab initialProfiles={profiles} />}
+
+        {/* PLANNING */}
+        {tab === 'planning' && <PlanningTab residents={residents} />}
 
         {/* AUDIT */}
         {tab === 'audit' && (
