@@ -3,6 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { PRIORITY_ROUTING, STATUS_LABELS, isOverdue, getRemainingHours } from '@/types'
 import type { Ticket, TicketMessage, TicketStatus } from '@/types'
+import { createBrowserClient } from '@/lib/supabase'
+
+function signOut() {
+  createBrowserClient().auth.signOut().then(() => { window.location.href = '/login' })
+}
 
 const STATUS_TABS: (TicketStatus | 'all')[] = ['all', 'open', 'assigned', 'in_progress', 'pending_family', 'resolved']
 
@@ -94,6 +99,8 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
         <nav className="kin-nav kin-nav--dark">
           <span className="kin-nav__brand">Kin</span>
           <span style={{ fontSize: 13, color: '#9ca3af' }}>Staff Portal</span>
+          <span className="kin-nav__spacer" />
+          <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid #374151', color: '#9ca3af' }} onClick={signOut}>Sign out</button>
         </nav>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', flexDirection: 'column', gap: 8 }}>
           <div style={{ fontSize: 32 }}>✅</div>
@@ -110,7 +117,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
         <span style={{ fontSize: 13, color: '#9ca3af' }}>Staff Portal</span>
         <span className="kin-nav__spacer" />
         {overdueCount > 0 && <span className="chip chip--urgent">{overdueCount} overdue</span>}
-        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>JR</div>
+        <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid #374151', color: '#9ca3af' }} onClick={signOut}>Sign out</button>
       </nav>
 
       <div className="kin-content" style={{ height: 'calc(100vh - 56px)' }}>

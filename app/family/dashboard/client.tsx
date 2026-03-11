@@ -5,6 +5,10 @@ import { EscalateModal } from '@/components/family/EscalateModal'
 import { createBrowserClient } from '@/lib/supabase'
 import type { CareEvent, Resident } from '@/types'
 
+function signOut() {
+  createBrowserClient().auth.signOut().then(() => { window.location.href = '/login' })
+}
+
 const EVENT_ICONS: Record<string, string> = {
   meal: '🍽️',
   medication: '💊',
@@ -190,6 +194,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
             + Contact care team
           </button>
         )}
+        <button className="btn btn--secondary btn--sm" onClick={signOut}>Sign out</button>
       </nav>
 
       <div className="kin-content">
