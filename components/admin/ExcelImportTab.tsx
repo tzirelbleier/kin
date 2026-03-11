@@ -222,9 +222,10 @@ export function ExcelImportTab({ facilityId }: Props) {
         <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 16 }}>
           Family dashboards will show the new events immediately.
         </p>
-        <button className="btn btn--primary" style={{ marginTop: 20 }} onClick={reset}>
-          Import another file
-        </button>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 20 }}>
+          <button className="btn btn--secondary" onClick={reset}>Import another file</button>
+          <a href="/family/dashboard" className="btn btn--primary">View Family Dashboard →</a>
+        </div>
       </div>
     </div>
   )

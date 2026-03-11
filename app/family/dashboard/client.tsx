@@ -147,14 +147,9 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
     if (!next || next.id === selectedResident?.id) return
     setSelectedResident(next)
     setLoadingEvents(true)
-    const supabase = createBrowserClient()
-    const { data } = await supabase
-      .from('care_events')
-      .select('*')
-      .eq('resident_id', residentId)
-      .order('occurred_at', { ascending: false })
-      .limit(30)
-    setCurrentEvents(data ?? [])
+    const res = await fetch(`/api/care-events?resident_id=${residentId}`)
+    const data = res.ok ? await res.json() : []
+    setCurrentEvents(data)
     setLoadingEvents(false)
   }
 
