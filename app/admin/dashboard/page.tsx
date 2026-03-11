@@ -23,6 +23,7 @@ export default async function AdminDashboardPage() {
       tickets={ticketsRes.data ?? []}
       events={eventsRes.data ?? []}
       auditLog={auditRes.data ?? []}
+      facilityId={facilityId}
     />
   )
 }

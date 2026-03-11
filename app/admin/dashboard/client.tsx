@@ -3,14 +3,16 @@
 import { useState } from 'react'
 import { PRIORITY_ROUTING } from '@/types'
 import type { Ticket, TicketCategory } from '@/types'
+import { ExcelImportTab } from '@/components/admin/ExcelImportTab'
 
-type Tab = 'overview' | 'tickets' | 'routing' | 'audit'
+type Tab = 'overview' | 'tickets' | 'routing' | 'audit' | 'import'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'tickets', label: 'Tickets' },
   { id: 'routing', label: 'Routing' },
   { id: 'audit', label: 'Audit Log' },
+  { id: 'import', label: '📊 Import Events' },
 ]
 
 const ACTION_ICONS: Record<string, string> = {
@@ -25,9 +27,10 @@ interface Props {
   tickets: Ticket[]
   events: { id: string; occurred_at: string; severity: string }[]
   auditLog: { id: string; action: string; actor_id: string | null; entity_type: string; entity_id: string | null; created_at: string; after_state: Record<string, unknown> | null }[]
+  facilityId: string
 }
 
-export function AdminDashboardClient({ tickets, events, auditLog }: Props) {
+export function AdminDashboardClient({ tickets, events, auditLog, facilityId }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
 
   // Compute metrics
@@ -261,6 +264,11 @@ export function AdminDashboardClient({ tickets, events, auditLog }: Props) {
               </div>
             )}
           </div>
+        )}
+
+        {/* IMPORT */}
+        {tab === 'import' && (
+          <ExcelImportTab facilityId={facilityId} />
         )}
       </div>
     </div>
