@@ -12,11 +12,13 @@ export default async function FamilyDashboardPage() {
 
   const supabase = createServiceClient()
   const isAdmin = profile.role === 'admin' || profile.role === 'director'
+  const isStaff = profile.role === 'staff' || profile.role === 'nurse'
+  const readOnly = isStaff // staff/nurse can view but cannot raise concerns or ask questions
 
   let residents: Resident[] = []
 
-  if (isAdmin) {
-    // Admin/director: see all active residents in the facility
+  if (isAdmin || isStaff) {
+    // Admin/director/staff/nurse: see all active residents in the facility
     const { data } = await supabase
       .from('residents')
       .select('*')
@@ -37,7 +39,6 @@ export default async function FamilyDashboardPage() {
 
   const firstResident = residents[0] ?? null
 
-  // Fetch care events for the first resident
   const { data: events } = firstResident
     ? await supabase
         .from('care_events')
@@ -53,7 +54,8 @@ export default async function FamilyDashboardPage() {
       initialEvents={(events ?? []) as CareEvent[]}
       facilityId={profile.facility_id}
       profileId={profile.id}
-      isAdmin={isAdmin}
+      isAdmin={isAdmin || isStaff}
+      readOnly={readOnly}
     />
   )
 }

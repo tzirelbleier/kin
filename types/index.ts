@@ -119,6 +119,7 @@ export interface Profile {
   role: UserRole
   avatar_url: string | null
   created_at: string
+  is_active?: boolean
 }
 
 export interface Resident {

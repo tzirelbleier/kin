@@ -87,10 +87,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(roleToPath(role), request.url))
   }
 
-  // /family/* — family, admin, director
+  // /family/* — family, staff, nurse, admin, director (staff/nurse get read-only view)
   if (
     pathname.startsWith('/family/') &&
-    !['family', 'admin', 'director'].includes(role ?? '')
+    !['family', 'staff', 'nurse', 'admin', 'director'].includes(role ?? '')
   ) {
     return NextResponse.redirect(new URL(roleToPath(role), request.url))
   }

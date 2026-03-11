@@ -55,12 +55,128 @@ function groupByTime(events: CareEvent[]) {
   return groups.filter((g) => g.events.length > 0)
 }
 
+function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
+  return (
+    <div className="kin-card" style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: 28, fontWeight: 800, color: color ?? 'var(--color-primary)', marginBottom: 4 }}>{value}</div>
+      <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{sub}</div>}
+    </div>
+  )
+}
+
+function ReportsView({ events }: { events: CareEvent[] }) {
+  const now = Date.now()
+  const last7 = events.filter(e => now - new Date(e.occurred_at).getTime() < 7 * 86400000)
+  const last30 = events.filter(e => now - new Date(e.occurred_at).getTime() < 30 * 86400000)
+
+  const byType = ['meal', 'medication', 'activity', 'vitals', 'hygiene', 'incident'].map(type => ({
+    type,
+    icon: EVENT_ICONS[type] ?? EVENT_ICONS.default,
+    count: last30.filter(e => e.event_type === type).length,
+  })).filter(t => t.count > 0)
+  const maxByType = Math.max(...byType.map(t => t.count), 1)
+
+  const bySeverity = [
+    { label: 'Incident', key: 'incident', color: '#ef4444' },
+    { label: 'Critical', key: 'critical', color: '#f97316' },
+    { label: 'Warning', key: 'warning', color: '#eab308' },
+    { label: 'Info', key: 'info', color: '#22c55e' },
+  ].map(s => ({ ...s, count: last30.filter(e => e.severity === s.key).length })).filter(s => s.count > 0)
+
+  // Last 14 days timeline
+  const timeline = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (13 - i))
+    const next = new Date(d); next.setDate(next.getDate() + 1)
+    return {
+      day: d.toLocaleDateString('en', { weekday: 'short', month: 'numeric', day: 'numeric' }),
+      count: events.filter(e => { const ed = new Date(e.occurred_at); return ed >= d && ed < next }).length,
+    }
+  })
+  const maxTimeline = Math.max(...timeline.map(d => d.count), 1)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* KPI row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        <StatCard label="Events (last 7 days)" value={last7.length} color="#2563eb" />
+        <StatCard label="Events (last 30 days)" value={last30.length} color="#7c3aed" />
+        <StatCard label="Incidents (30 days)" value={last30.filter(e => e.severity === 'incident').length} color="#dc2626" />
+        <StatCard label="Medication events" value={last30.filter(e => e.event_type === 'medication').length} sub="last 30 days" color="#16a34a" />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* Events by type */}
+        <div className="kin-card">
+          <div style={{ fontWeight: 600, marginBottom: 16 }}>Events by type — last 30 days</div>
+          {byType.length === 0 ? (
+            <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No events yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {byType.map(t => (
+                <div key={t.type} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ width: 24, flexShrink: 0, textAlign: 'center' }}>{t.icon}</span>
+                  <span style={{ fontSize: 13, width: 90, flexShrink: 0, textTransform: 'capitalize' }}>{t.type}</span>
+                  <div style={{ flex: 1, height: 10, background: 'var(--color-border)', borderRadius: 5, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(t.count / maxByType) * 100}%`, background: 'var(--color-primary)', borderRadius: 5, opacity: 0.8 }} />
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 700, width: 28, textAlign: 'right', flexShrink: 0 }}>{t.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* By severity */}
+        <div className="kin-card">
+          <div style={{ fontWeight: 600, marginBottom: 16 }}>Events by severity — last 30 days</div>
+          {bySeverity.length === 0 ? (
+            <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No events yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {bySeverity.map(s => (
+                <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 13, width: 70, flexShrink: 0 }}>{s.label}</span>
+                  <div style={{ flex: 1, height: 10, background: 'var(--color-border)', borderRadius: 5, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(s.count / last30.length) * 100}%`, background: s.color, borderRadius: 5, opacity: 0.8 }} />
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 700, width: 28, textAlign: 'right', flexShrink: 0 }}>{s.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 14-day timeline */}
+      <div className="kin-card">
+        <div style={{ fontWeight: 600, marginBottom: 16 }}>Activity — last 14 days</div>
+        {timeline.every(d => d.count === 0) ? (
+          <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No events in this period.</div>
+        ) : (
+          <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 80 }}>
+            {timeline.map((d) => (
+              <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-secondary)' }}>{d.count || ''}</div>
+                <div style={{ width: '100%', height: `${Math.max((d.count / maxTimeline) * 60, d.count > 0 ? 4 : 0)}px`, background: 'var(--color-primary)', borderRadius: '3px 3px 0 0', opacity: 0.7 }} />
+                <div style={{ fontSize: 9, color: 'var(--color-text-muted)', transform: 'rotate(-45deg)', transformOrigin: 'top left', marginTop: 4, whiteSpace: 'nowrap' }}>{d.day}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function EventCard({
   event,
   onEscalate,
+  readOnly,
 }: {
   event: CareEvent
   onEscalate: (event: CareEvent, type: 'question' | 'concern') => void
+  readOnly?: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
   const isIncident = event.severity === 'incident'
@@ -97,21 +213,28 @@ function EventCard({
                   {event.detail}
                 </p>
               )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  className="btn btn--secondary btn--sm"
-                  onClick={(e) => { e.stopPropagation(); onEscalate(event, 'question') }}
-                >
-                  ❓ Ask a question
-                </button>
-                <button
-                  className="btn btn--sm"
-                  style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }}
-                  onClick={(e) => { e.stopPropagation(); onEscalate(event, 'concern') }}
-                >
-                  ⚠️ Raise a concern
-                </button>
-              </div>
+              {!readOnly && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    className="btn btn--secondary btn--sm"
+                    onClick={(e) => { e.stopPropagation(); onEscalate(event, 'question') }}
+                  >
+                    ❓ Ask a question
+                  </button>
+                  <button
+                    className="btn btn--sm"
+                    style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }}
+                    onClick={(e) => { e.stopPropagation(); onEscalate(event, 'concern') }}
+                  >
+                    ⚠️ Raise a concern
+                  </button>
+                </div>
+              )}
+              {readOnly && (
+                <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                  Read-only view — family actions not available
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -129,12 +252,14 @@ interface Props {
   facilityId: string
   profileId: string
   isAdmin: boolean
+  readOnly?: boolean
 }
 
-export function FamilyDashboardClient({ residents, initialEvents, facilityId, profileId, isAdmin }: Props) {
+export function FamilyDashboardClient({ residents, initialEvents, facilityId, profileId, isAdmin, readOnly }: Props) {
   const [selectedResident, setSelectedResident] = useState<Resident | null>(residents[0] ?? null)
   const [currentEvents, setCurrentEvents] = useState<CareEvent[]>(initialEvents)
   const [loadingEvents, setLoadingEvents] = useState(false)
+  const [mainView, setMainView] = useState<'feed' | 'reports'>('feed')
   const [modalState, setModalState] = useState<{
     open: boolean
     event?: CareEvent
@@ -155,13 +280,13 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
 
   const grouped = groupByTime(currentEvents)
 
-  // Incidents/critical events in the last 48 hours
   const cutoff = Date.now() - 48 * 3600 * 1000
   const alerts = currentEvents.filter(
     (e) => (e.severity === 'incident' || e.severity === 'critical') && new Date(e.occurred_at).getTime() > cutoff
   )
 
   const openModal = (event?: CareEvent, type?: 'question' | 'concern') => {
+    if (readOnly) return
     setModalState({ open: true, event, defaultCategory: type })
   }
 
@@ -189,8 +314,13 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
       <nav className="kin-nav">
         <span className="kin-nav__brand">Idene</span>
         <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Family Portal</span>
+        {readOnly && (
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99, background: '#f3f4f6', color: '#6b7280', marginLeft: 8 }}>
+            Read-only view
+          </span>
+        )}
         <span className="kin-nav__spacer" />
-        {selectedResident && (
+        {selectedResident && !readOnly && (
           <button className="btn btn--primary btn--sm" onClick={() => openModal()}>
             + Contact care team
           </button>
@@ -225,13 +355,15 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
                   <div style={{ fontSize: 13, color: '#7f1d1d', marginTop: 2 }}>{alert.detail}</div>
                 )}
               </div>
-              <button
-                className="btn btn--sm"
-                style={{ background: '#dc2626', color: '#fff', border: 'none', flexShrink: 0 }}
-                onClick={() => openModal(alert, 'concern')}
-              >
-                Contact care team
-              </button>
+              {!readOnly && (
+                <button
+                  className="btn btn--sm"
+                  style={{ background: '#dc2626', color: '#fff', border: 'none', flexShrink: 0 }}
+                  onClick={() => openModal(alert, 'concern')}
+                >
+                  Contact care team
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -244,8 +376,9 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
           borderRight: '1px solid var(--color-border)',
           background: 'var(--color-surface)',
           padding: 20, overflowY: 'auto',
+          display: 'flex', flexDirection: 'column',
         }}>
-          {/* Resident switcher for admin */}
+          {/* Resident switcher for admin/staff */}
           {isAdmin && residents.length > 1 && (
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 6 }}>
@@ -303,40 +436,66 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
                   <span style={{ color: 'var(--color-text-secondary)' }}>{row.value}</span>
                 </div>
               ))}
+
+              {/* View toggle */}
+              <div style={{ display: 'flex', gap: 6, marginTop: 20 }}>
+                <button
+                  className={`btn btn--sm ${mainView === 'feed' ? 'btn--primary' : 'btn--secondary'}`}
+                  style={{ flex: 1 }}
+                  onClick={() => setMainView('feed')}
+                >
+                  Feed
+                </button>
+                <button
+                  className={`btn btn--sm ${mainView === 'reports' ? 'btn--primary' : 'btn--secondary'}`}
+                  style={{ flex: 1 }}
+                  onClick={() => setMainView('reports')}
+                >
+                  Reports
+                </button>
+              </div>
             </>
           )}
         </aside>
 
-        {/* Feed */}
+        {/* Main content */}
         <main style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
           {selectedResident && (
             <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>
-              Care updates for {selectedResident.full_name}
+              {mainView === 'reports' ? `Reports — ${selectedResident.full_name}` : `Care updates for ${selectedResident.full_name}`}
             </h1>
           )}
 
-          {loadingEvents && (
-            <div style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>Loading events…</div>
+          {mainView === 'reports' && (
+            <ReportsView events={currentEvents} />
           )}
 
-          {!loadingEvents && grouped.length === 0 && (
-            <div style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>No care events yet.</div>
-          )}
+          {mainView === 'feed' && (
+            <>
+              {loadingEvents && (
+                <div style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>Loading events…</div>
+              )}
 
-          {!loadingEvents && grouped.map((group) => (
-            <div key={group.label} style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: 'var(--color-text-muted)', marginBottom: 10 }}>
-                {group.label}
-              </div>
-              {group.events.map((event) => (
-                <EventCard key={event.id} event={event} onEscalate={openModal} />
+              {!loadingEvents && grouped.length === 0 && (
+                <div style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>No care events yet.</div>
+              )}
+
+              {!loadingEvents && grouped.map((group) => (
+                <div key={group.label} style={{ marginBottom: 28 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: 'var(--color-text-muted)', marginBottom: 10 }}>
+                    {group.label}
+                  </div>
+                  {group.events.map((event) => (
+                    <EventCard key={event.id} event={event} onEscalate={openModal} readOnly={readOnly} />
+                  ))}
+                </div>
               ))}
-            </div>
-          ))}
+            </>
+          )}
         </main>
       </div>
 
-      {modalState.open && selectedResident && (
+      {!readOnly && modalState.open && selectedResident && (
         <EscalateModal
           residentId={selectedResident.id}
           residentName={selectedResident.full_name}
