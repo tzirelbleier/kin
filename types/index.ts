@@ -209,6 +209,43 @@ export interface AuditLog {
   actor?: Profile
 }
 
+export interface ScheduleItem {
+  id: string
+  facility_id: string
+  resident_id: string | null
+  day_of_week: number // 0=Sun, 1=Mon, ..., 6=Sat
+  start_time: string // "HH:MM:SS"
+  end_time: string | null
+  title: string
+  description: string | null
+  category: string
+  created_at: string
+}
+
+export interface Appointment {
+  id: string
+  facility_id: string
+  resident_id: string
+  scheduled_at: string
+  title: string
+  description: string | null
+  location: string | null
+  appointment_type: string
+  status: string
+  created_at: string
+}
+
+export interface FacilityMenu {
+  id: string
+  facility_id: string
+  resident_id: string | null
+  date: string // "YYYY-MM-DD"
+  meal_type: string // breakfast, lunch, dinner, snack
+  title: string
+  description: string | null
+  created_at: string
+}
+
 export interface NotificationPreference {
   id: string
   profile_id: string
