@@ -155,6 +155,12 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
 
   const grouped = groupByTime(currentEvents)
 
+  // Incidents/critical events in the last 48 hours
+  const cutoff = Date.now() - 48 * 3600 * 1000
+  const alerts = currentEvents.filter(
+    (e) => (e.severity === 'incident' || e.severity === 'critical') && new Date(e.occurred_at).getTime() > cutoff
+  )
+
   const openModal = (event?: CareEvent, type?: 'question' | 'concern') => {
     setModalState({ open: true, event, defaultCategory: type })
   }
@@ -191,6 +197,45 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
         )}
         <button className="btn btn--secondary btn--sm" onClick={signOut}>Sign out</button>
       </nav>
+
+      {/* Incident alert banner */}
+      {alerts.length > 0 && (
+        <div style={{
+          background: '#fef2f2',
+          borderBottom: '1px solid #fecaca',
+          padding: '12px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}>
+          {alerts.map((alert) => (
+            <div key={alert.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>🚨</span>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontWeight: 700, color: '#991b1b', fontSize: 14 }}>
+                  Incident reported — {selectedResident?.full_name}
+                </span>
+                <span style={{ color: '#b91c1c', fontSize: 13, marginLeft: 8 }}>
+                  {alert.title}
+                </span>
+                <span style={{ color: '#dc2626', fontSize: 12, marginLeft: 8 }}>
+                  · {timeAgo(alert.occurred_at)}
+                </span>
+                {alert.detail && (
+                  <div style={{ fontSize: 13, color: '#7f1d1d', marginTop: 2 }}>{alert.detail}</div>
+                )}
+              </div>
+              <button
+                className="btn btn--sm"
+                style={{ background: '#dc2626', color: '#fff', border: 'none', flexShrink: 0 }}
+                onClick={() => openModal(alert, 'concern')}
+              >
+                Contact care team
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="kin-content">
         {/* Sidebar */}
