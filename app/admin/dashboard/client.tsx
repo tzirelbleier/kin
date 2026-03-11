@@ -5,7 +5,7 @@ import { PRIORITY_ROUTING } from '@/types'
 import type { Ticket, TicketCategory } from '@/types'
 import { ExcelImportTab } from '@/components/admin/ExcelImportTab'
 
-type Tab = 'overview' | 'tickets' | 'routing' | 'audit' | 'import'
+type Tab = 'overview' | 'tickets' | 'routing' | 'audit' | 'import' | 'integrations'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -13,6 +13,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'routing', label: 'Routing' },
   { id: 'audit', label: 'Audit Log' },
   { id: 'import', label: '📊 Import Events' },
+  { id: 'integrations', label: '🔌 Integrations' },
 ]
 
 const ACTION_ICONS: Record<string, string> = {
@@ -23,9 +24,99 @@ const ACTION_ICONS: Record<string, string> = {
   'care_event.ingested': '📡',
 }
 
+// ----------------------------------------------------------------
+// Integration sub-components
+// ----------------------------------------------------------------
+
+function IntegrationCard({ icon, name, status, description, statusLabel, action }: {
+  icon: string
+  name: string
+  status: 'active' | 'inactive'
+  description: string
+  statusLabel: string
+  action: React.ReactNode
+}) {
+  return (
+    <div className="kin-card" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div style={{ fontSize: 28, flexShrink: 0, marginTop: 2 }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>{name}</span>
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
+            background: status === 'active' ? '#dcfce7' : '#f3f4f6',
+            color: status === 'active' ? '#15803d' : '#6b7280',
+          }}>
+            {status === 'active' ? '● ' : '○ '}{statusLabel}
+          </span>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 14, lineHeight: 1.6 }}>
+          {description}
+        </p>
+        {action}
+      </div>
+    </div>
+  )
+}
+
+function WebhookConfig({ name, webhookPath, sourceSlug }: {
+  name: string
+  webhookPath: string
+  sourceSlug: string
+}) {
+  const [open, setOpen] = useState(false)
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  const webhookUrl = `${appUrl}${webhookPath}`
+
+  return (
+    <div>
+      <button className="btn btn--secondary btn--sm" onClick={() => setOpen(v => !v)}>
+        {open ? 'Hide setup' : 'Show setup instructions'}
+      </button>
+      {open && (
+        <div style={{ marginTop: 12, padding: 16, background: 'var(--color-bg)', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 13 }}>
+          <div style={{ fontWeight: 600, marginBottom: 10 }}>Configure {name} webhook</div>
+
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 4 }}>
+              1. Webhook endpoint URL
+            </div>
+            <code style={{ display: 'block', background: '#1e293b', color: '#e2e8f0', padding: '8px 12px', borderRadius: 6, fontSize: 12, wordBreak: 'break-all' }}>
+              {webhookUrl}
+            </code>
+          </div>
+
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 4 }}>
+              2. Required header
+            </div>
+            <code style={{ display: 'block', background: '#1e293b', color: '#e2e8f0', padding: '8px 12px', borderRadius: 6, fontSize: 12 }}>
+              x-kin-webhook-secret: {'<your WEBHOOK_SECRET env var>'}
+            </code>
+          </div>
+
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 4 }}>
+              3. Payload source field
+            </div>
+            <code style={{ display: 'block', background: '#1e293b', color: '#e2e8f0', padding: '8px 12px', borderRadius: 6, fontSize: 12 }}>
+              {`{ "source": "${sourceSlug}", "facility_slug": "sunrise-gardens", "events": [...] }`}
+            </code>
+          </div>
+
+          <div style={{ padding: '10px 12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, color: '#92400e', fontSize: 12 }}>
+            💡 Once events are received, this integration will show as <strong>Active</strong> automatically.
+            No manual toggle required.
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface Props {
   tickets: Ticket[]
-  events: { id: string; occurred_at: string; severity: string }[]
+  events: { id: string; occurred_at: string; severity: string; source: string }[]
   auditLog: { id: string; action: string; actor_id: string | null; entity_type: string; entity_id: string | null; created_at: string; after_state: Record<string, unknown> | null }[]
   facilityId: string
 }
@@ -113,7 +204,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId }: 
                 { label: 'Total tickets', value: String(total), sub: 'all time', color: '#2563eb' },
                 { label: 'Resolved', value: String(resolved), sub: `of ${total} tickets`, color: '#16a34a' },
                 { label: 'Avg response time', value: `${avgResponseH}h`, sub: 'across all tickets', color: '#7c3aed' },
-                { label: 'Auto-updates today', value: String(todayEvents), sub: 'from EHR integrations', color: '#d97706' },
+                { label: 'Auto-updates today', value: String(todayEvents), sub: 'from all data sources', color: '#d97706' },
               ].map((m) => (
                 <div key={m.label} className="kin-card">
                   <div style={{ fontSize: 32, fontWeight: 800, color: m.color, marginBottom: 4 }}>{m.value}</div>
@@ -142,22 +233,31 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId }: 
               </div>
 
               <div className="kin-card">
-                <div style={{ fontWeight: 600, marginBottom: 12 }}>Integrations</div>
-                {[
-                  { name: 'PointClickCare', status: 'live', last: 'Active', events: events.filter(e => true).length },
-                  { name: 'Tabula Pro', status: 'inactive', last: 'Never', events: 0 },
-                  { name: 'MatrixCare', status: 'inactive', last: 'Never', events: 0 },
-                ].map((int) => (
-                  <div key={int.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: int.status === 'live' ? '#16a34a' : '#9ca3af' }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 500, fontSize: 13 }}>{int.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-                        {int.status === 'live' ? `${int.events} events ingested` : 'Not connected'}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ fontWeight: 600 }}>Data sources</div>
+                  <button className="btn btn--secondary btn--sm" onClick={() => setTab('integrations')}>Configure</button>
+                </div>
+                {([
+                  { name: 'Excel Upload', source: 'staff', icon: '📊' },
+                  { name: 'PointClickCare', source: 'pointclickcare', icon: '🏥' },
+                  { name: 'Tabula Pro', source: 'tabulapro', icon: '📋' },
+                  { name: 'MatrixCare', source: 'matrixcare', icon: '🔗' },
+                ] as { name: string; source: string; icon: string }[]).map((int) => {
+                  const count = events.filter(e => e.source === int.source).length
+                  const active = count > 0
+                  return (
+                    <div key={int.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--color-border-light)' }}>
+                      <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: active ? '#16a34a' : '#9ca3af', flexShrink: 0 }} />
+                      <span style={{ fontSize: 16, flexShrink: 0 }}>{int.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 500, fontSize: 13 }}>{int.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                          {active ? `${count} events ingested` : 'Not connected'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -269,6 +369,58 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId }: 
         {/* IMPORT */}
         {tab === 'import' && (
           <ExcelImportTab facilityId={facilityId} />
+        )}
+
+        {/* INTEGRATIONS */}
+        {tab === 'integrations' && (
+          <div style={{ maxWidth: 680, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Integrations</h2>
+              <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                Configure data sources for care events. Active integrations feed the family dashboard automatically.
+              </p>
+            </div>
+
+            {/* Excel Upload */}
+            <IntegrationCard
+              icon="📊"
+              name="Excel / CSV Upload"
+              status="active"
+              description="Manually upload care event data from a spreadsheet. Ideal for demos and facilities without an EHR API."
+              statusLabel="Active"
+              action={<button className="btn btn--primary btn--sm" onClick={() => setTab('import')}>Open import tool →</button>}
+            />
+
+            {/* PointClickCare */}
+            <IntegrationCard
+              icon="🏥"
+              name="PointClickCare"
+              status="inactive"
+              description="Connect to PointClickCare via webhook. Care events are pushed to Idene in real time when charted."
+              statusLabel="Not connected"
+              action={<WebhookConfig name="PointClickCare" webhookPath="/api/webhooks/events" sourceSlug="pointclickcare" />}
+            />
+
+            {/* Tabula Pro */}
+            <IntegrationCard
+              icon="📋"
+              name="Tabula Pro"
+              status="inactive"
+              description="Receive care events from Tabula Pro via webhook integration."
+              statusLabel="Not connected"
+              action={<WebhookConfig name="Tabula Pro" webhookPath="/api/webhooks/events" sourceSlug="tabulapro" />}
+            />
+
+            {/* MatrixCare */}
+            <IntegrationCard
+              icon="🔗"
+              name="MatrixCare"
+              status="inactive"
+              description="Receive care events from MatrixCare via webhook integration."
+              statusLabel="Not connected"
+              action={<WebhookConfig name="MatrixCare" webhookPath="/api/webhooks/events" sourceSlug="matrixcare" />}
+            />
+          </div>
         )}
       </div>
     </div>

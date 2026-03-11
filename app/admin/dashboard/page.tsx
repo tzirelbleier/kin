@@ -14,7 +14,7 @@ export default async function AdminDashboardPage() {
 
   const [ticketsRes, eventsRes, auditRes] = await Promise.all([
     supabase.from('tickets').select('*').eq('facility_id', facilityId).order('created_at', { ascending: false }),
-    supabase.from('care_events').select('id, occurred_at, severity').eq('facility_id', facilityId).order('occurred_at', { ascending: false }).limit(200),
+    supabase.from('care_events').select('id, occurred_at, severity, source').eq('facility_id', facilityId).order('occurred_at', { ascending: false }).limit(200),
     supabase.from('audit_log').select('*').eq('facility_id', facilityId).order('created_at', { ascending: false }).limit(50),
   ])
 
