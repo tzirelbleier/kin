@@ -1,6 +1,17 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [breakpoint])
+  return isMobile
+}
 import { EscalateModal } from '@/components/family/EscalateModal'
 import { createBrowserClient } from '@/lib/supabase'
 import { PRIORITY_ROUTING, STATUS_LABELS } from '@/types'
@@ -122,6 +133,7 @@ function CalendarView({ scheduleItems, appointments, facilityId, residentId }: {
   facilityId: string
   residentId: string
 }) {
+  const isMobile = useIsMobile()
   const [weekOffset, setWeekOffset] = useState(0)
   const { days, label } = getWeek(weekOffset)
   const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -137,7 +149,7 @@ function CalendarView({ scheduleItems, appointments, facilityId, residentId }: {
       </div>
 
       {/* Day columns — horizontal scroll on narrow screens */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(120px, 1fr))', gap: 8, overflowX: 'auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, minmax(100px, 1fr))' : 'repeat(7, minmax(120px, 1fr))', gap: 8, overflowX: 'auto' }}>
         {days.map(day => {
           const dayIdx = day.getDay()
           const dateStr = toDateStr(day)
@@ -275,6 +287,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 }
 
 function ReportsView({ events }: { events: CareEvent[] }) {
+  const isMobile = useIsMobile()
   const now = Date.now()
   const last7 = events.filter(e => now - new Date(e.occurred_at).getTime() < 7 * 86400000)
   const last30 = events.filter(e => now - new Date(e.occurred_at).getTime() < 30 * 86400000)
@@ -295,7 +308,7 @@ function ReportsView({ events }: { events: CareEvent[] }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
         <StatCard label="Events (last 7d)" value={last7.length} color="#2563eb" />
         <StatCard label="Events (last 30d)" value={last30.length} color="#7c3aed" />
         <StatCard label="Incidents (30d)" value={last30.filter(e => e.severity === 'incident').length} color="#dc2626" />
@@ -489,6 +502,8 @@ interface Props {
 type MainView = 'feed' | 'calendar' | 'menu' | 'tickets' | 'reports'
 
 export function FamilyDashboardClient({ residents, initialEvents, facilityId, profileId, isAdmin, readOnly, returnTo }: Props) {
+  const isMobile = useIsMobile()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedResident, setSelectedResident] = useState<Resident | null>(residents[0] ?? null)
   const [currentEvents, setCurrentEvents] = useState<CareEvent[]>(initialEvents)
   const [loadingEvents, setLoadingEvents] = useState(false)
@@ -635,9 +650,19 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
         </div>
       )}
 
-      <div className="kin-content">
+      <div className="kin-content" style={{ flexDirection: isMobile ? 'column' : 'row' }}>
+        {/* Mobile: sidebar toggle button */}
+        {isMobile && (
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button onClick={() => setSidebarOpen(v => !v)} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, padding: '5px 12px', fontSize: 13, cursor: 'pointer' }}>
+              {sidebarOpen ? '▲ Hide info' : '▼ Resident info'}
+            </button>
+            {selectedResident && <span style={{ fontWeight: 600, fontSize: 14 }}>{selectedResident.full_name}</span>}
+          </div>
+        )}
+
         {/* Sidebar */}
-        <aside style={{ width: 260, flexShrink: 0, borderRight: '1px solid var(--color-border)', background: 'var(--color-surface)', padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <aside style={{ width: isMobile ? '100%' : 260, flexShrink: 0, borderRight: isMobile ? 'none' : '1px solid var(--color-border)', borderBottom: isMobile ? '1px solid var(--color-border)' : 'none', background: 'var(--color-surface)', padding: 20, overflowY: 'auto', display: isMobile && !sidebarOpen ? 'none' : 'flex', flexDirection: 'column' }}>
           {isAdmin && residents.length > 1 && (
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 6 }}>Resident</label>
@@ -719,7 +744,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
             ))}
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px' : '24px 32px' }}>
             {selectedResident && (
               <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>
                 {mainView === 'feed' && `Care updates — ${selectedResident.full_name}`}

@@ -1,6 +1,17 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [breakpoint])
+  return isMobile
+}
 import { PRIORITY_ROUTING, STATUS_LABELS, isOverdue, getRemainingHours } from '@/types'
 import type { Ticket, TicketMessage, TicketStatus, TicketCategory } from '@/types'
 import { createBrowserClient } from '@/lib/supabase'
@@ -35,6 +46,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 }
 
 function StaffReports({ tickets }: { tickets: Ticket[] }) {
+  const isMobile = useIsMobile()
   const now = Date.now()
   const weekAgo = now - 7 * 86400000
 
@@ -97,7 +109,7 @@ function StaffReports({ tickets }: { tickets: Ticket[] }) {
       <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Staff Reports</h2>
 
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12 }}>
         <StatCard label="Total tickets" value={tickets.length} color="#2563eb" />
         <StatCard label="Open" value={open.length} sub="awaiting action" color="#d97706" />
         <StatCard label="Resolved this week" value={resolvedThisWeek.length} color="#16a34a" />
@@ -105,7 +117,7 @@ function StaffReports({ tickets }: { tickets: Ticket[] }) {
         <StatCard label="SLA compliance" value={`${slaPercent}%`} color={slaPercent >= 95 ? '#16a34a' : slaPercent >= 85 ? '#d97706' : '#dc2626'} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
         {/* By priority */}
         <div className="kin-card">
           <div style={{ fontWeight: 600, marginBottom: 16 }}>Tickets by priority</div>
@@ -154,7 +166,8 @@ function StaffReports({ tickets }: { tickets: Ticket[] }) {
         {categorySlaTbl.length === 0 ? (
           <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No tickets yet.</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
                 {['Category', 'Total', 'Open', 'Avg response', 'SLA compliance', 'SLA target'].map(h => (
@@ -188,6 +201,7 @@ function StaffReports({ tickets }: { tickets: Ticket[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -224,6 +238,8 @@ interface Props {
 }
 
 export function StaffTicketsClient({ tickets, profileId }: Props) {
+  const isMobile = useIsMobile()
+  const [mobileView, setMobileView] = useState<'queue' | 'thread'>('queue')
   const [mode, setMode] = useState<'queue' | 'reports'>('queue')
   const [statusFilter, setStatusFilter] = useState<TicketStatus | 'all'>('all')
   const [mineOnly, setMineOnly] = useState(false)
@@ -329,9 +345,16 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
       )}
 
       {mode === 'queue' && tickets.length > 0 && (
-        <div className="kin-content" style={{ height: 'calc(100vh - 56px)' }}>
+        <div className="kin-content" style={{ height: isMobile ? 'calc(100vh - 100px)' : 'calc(100vh - 56px)', flexDirection: isMobile ? 'column' : 'row' }}>
+          {/* Mobile: toggle queue/thread */}
+          {isMobile && (
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)', flexShrink: 0 }}>
+              <button onClick={() => setMobileView('queue')} style={{ flex: 1, padding: '10px', border: 'none', cursor: 'pointer', fontWeight: mobileView === 'queue' ? 700 : 400, background: mobileView === 'queue' ? 'var(--color-primary-light)' : 'transparent', borderBottom: mobileView === 'queue' ? '2px solid var(--color-primary)' : '2px solid transparent', fontSize: 13 }}>Queue ({filtered.length})</button>
+              <button onClick={() => setMobileView('thread')} style={{ flex: 1, padding: '10px', border: 'none', cursor: 'pointer', fontWeight: mobileView === 'thread' ? 700 : 400, background: mobileView === 'thread' ? 'var(--color-primary-light)' : 'transparent', borderBottom: mobileView === 'thread' ? '2px solid var(--color-primary)' : '2px solid transparent', fontSize: 13 }}>Thread</button>
+            </div>
+          )}
           {/* Queue */}
-          <aside style={{ width: 340, flexShrink: 0, borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', background: 'var(--color-surface)' }}>
+          <aside style={{ width: isMobile ? '100%' : 340, flexShrink: 0, borderRight: isMobile ? 'none' : '1px solid var(--color-border)', display: isMobile && mobileView === 'thread' ? 'none' : 'flex', flexDirection: 'column', background: 'var(--color-surface)' }}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
@@ -359,7 +382,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
                 <div style={{ padding: 24, color: 'var(--color-text-muted)', textAlign: 'center', fontSize: 13 }}>No tickets match this filter</div>
               )}
               {filtered.map((ticket) => (
-                <div key={ticket.id} onClick={() => setSelectedId(ticket.id)} style={{
+                <div key={ticket.id} onClick={() => { setSelectedId(ticket.id); if (isMobile) setMobileView('thread') }} style={{
                   padding: '12px 16px', borderBottom: '1px solid var(--color-border-light)', cursor: 'pointer',
                   background: selectedId === ticket.id ? 'var(--color-primary-light)' : 'transparent',
                   borderLeft: selectedId === ticket.id ? '3px solid var(--color-primary)' : '3px solid transparent',
@@ -381,7 +404,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
           </aside>
 
           {/* Thread */}
-          <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <main style={{ flex: 1, display: isMobile && mobileView === 'queue' ? 'none' : 'flex', flexDirection: 'column', minWidth: 0 }}>
             {!selected ? (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
                 Select a ticket to view the thread

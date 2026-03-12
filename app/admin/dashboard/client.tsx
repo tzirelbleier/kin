@@ -175,7 +175,7 @@ function RoutingTab() {
         </div>
       </div>
       {!loaded ? <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>Loading…</div> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
           <thead>
             <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
               {['Category', 'Priority', 'Routes to', 'SLA (hours)'].map(h => (
@@ -196,7 +196,7 @@ function RoutingTab() {
               )
             })}
           </tbody>
-        </table>
+        </table></div>
       )}
     </div>
   )
@@ -257,7 +257,7 @@ function UsersTab({ initialProfiles }: { initialProfiles: Profile[] }) {
       {successMsg && <div style={{ padding: '10px 14px', background: '#dcfce7', border: '1px solid #86efac', borderRadius: 8, fontSize: 13, color: '#15803d', marginBottom: 16 }}>✓ {successMsg}</div>}
 
       <div className="kin-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
           <thead>
             <tr style={{ borderBottom: '2px solid var(--color-border)', background: 'var(--color-bg)' }}>
               {['Name', 'Email', 'Role', 'Status', 'Joined', ''].map(h => (
@@ -295,7 +295,7 @@ function UsersTab({ initialProfiles }: { initialProfiles: Profile[] }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {modal && (
@@ -333,6 +333,7 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
 
 function PlanningTab({ residents }: { residents: { id: string; full_name: string; room_number: string | null }[] }) {
+  const isMobile = useIsMobile()
   const [subTab, setSubTab] = useState<PlanningSubTab>('appointments')
   const [residentId, setResidentId] = useState<string>(residents[0]?.id ?? '')
 
@@ -497,7 +498,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
           </div>
           {apptLoading ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>Loading…</div> : (
             appointments.length === 0 ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>No appointments.</div> : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 480 }}>
                 <thead>
                   <tr style={{ background: 'var(--color-bg-secondary)' }}>
                     {['Date & Time', 'Title', 'Type', 'Location', 'Status', ''].map(h => (
@@ -520,7 +521,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )
           )}
         </div>
@@ -538,7 +539,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
           </div>
           {schedLoading ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>Loading…</div> : (
             scheduleItems.length === 0 ? <div style={{ padding: 20, color: 'var(--color-text-muted)', fontSize: 13 }}>No schedule items.</div> : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 480 }}>
                 <thead>
                   <tr style={{ background: 'var(--color-bg-secondary)' }}>
                     {['Day', 'Time', 'Title', 'Category', 'Scope', ''].map(h => (
@@ -561,7 +562,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )
           )}
         </div>
@@ -579,7 +580,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
             <button className="btn btn--primary btn--sm" style={{ marginLeft: 'auto' }} onClick={() => setMenuModal({ date: new Date().toISOString().slice(0, 10), meal_type: 'lunch' })}>+ Add meal</button>
           </div>
           {menuLoading ? <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>Loading…</div> : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(7, 1fr)', gap: 8 }}>
               {weekDates.map((date, di) => {
                 const dateStr = date.toISOString().slice(0, 10)
                 const dayMenus = menus.filter(m => m.date === dateStr)
@@ -626,7 +627,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
                 <label style={labelStyle}>Date & Time *</label>
                 <input type="datetime-local" style={inputStyle} value={apptModal.scheduled_at ? apptModal.scheduled_at.slice(0, 16) : ''} onChange={e => setApptModal(m => m ? { ...m, scheduled_at: e.target.value + ':00' } : m)} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                 <div>
                   <label style={labelStyle}>Type</label>
                   <select style={inputStyle} value={apptModal.appointment_type ?? 'appointment'} onChange={e => setApptModal(m => m ? { ...m, appointment_type: e.target.value } : m)}>
@@ -673,7 +674,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
                   {DAY_NAMES.map((d, i) => <option key={i} value={i}>{d}</option>)}
                 </select>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                 <div>
                   <label style={labelStyle}>Start Time *</label>
                   <input type="time" style={inputStyle} value={schedModal.start_time ?? ''} onChange={e => setSchedModal(m => m ? { ...m, start_time: e.target.value } : m)} />
@@ -708,7 +709,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
           <div className="kin-card" style={{ width: 400, maxWidth: '90vw', padding: 28 }}>
             <h3 style={{ margin: '0 0 20px', fontSize: 17, fontWeight: 700 }}>{menuModal.id ? 'Edit Meal' : 'Add Meal'}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                 <div>
                   <label style={labelStyle}>Date *</label>
                   <input type="date" style={inputStyle} value={menuModal.date ?? ''} onChange={e => setMenuModal(m => m ? { ...m, date: e.target.value } : m)} />
@@ -753,7 +754,19 @@ interface Props {
   residents: { id: string; full_name: string; room_number: string | null }[]
 }
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [breakpoint])
+  return isMobile
+}
+
 export function AdminDashboardClient({ tickets, events, auditLog, facilityId, profiles, residents }: Props) {
+  const isMobile = useIsMobile()
   const [tab, setTab] = useState<Tab>('reports')
   const [ticketSubTab, setTicketSubTab] = useState<'category' | 'resident' | 'staff' | 'all'>('category')
 
@@ -891,7 +904,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
         ))}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? 16 : 24 }}>
 
         {/* ====== REPORTS ====== */}
         {tab === 'reports' && (
@@ -900,7 +913,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
             {/* Section: KPIs */}
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: 'var(--color-text-muted)', marginBottom: 12 }}>Facility Overview</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(6, 1fr)', gap: 12 }}>
                 <StatCard label="Total tickets" value={total} color="#2563eb" />
                 <StatCard label="Open" value={open.length} color="#d97706" />
                 <StatCard label="Resolved" value={resolved.length} color="#16a34a" />
@@ -910,14 +923,14 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
               <StatCard label="Avg first response" value={`${avgResponseH}h`} color="#7c3aed" />
               <StatCard label="Tickets with response" value={`${responded.length}/${total}`} color="#2563eb" />
               <StatCard label="Auto-updates today" value={todayEvents} color="#d97706" />
               <StatCard label="Active users" value={profiles.filter(p => p.is_active !== false).length} color="#0891b2" />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
               {/* 7-day chart */}
               <div className="kin-card">
                 <div style={{ fontWeight: 600, marginBottom: 16 }}>Tickets this week</div>
@@ -958,7 +971,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
               <div className="kin-card">
                 <div style={{ fontWeight: 600, marginBottom: 16 }}>SLA by category</div>
                 {categoryStats.length === 0 ? <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No tickets yet.</div> : (
@@ -1005,7 +1018,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                 <div className="kin-card" style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No staff ticket assignments yet.</div>
               ) : (
                 <div className="kin-card" style={{ padding: 0, overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--color-border)', background: 'var(--color-bg)' }}>
                         {['Staff member', 'Role', 'Assigned', 'Responded', 'Resolved', 'Overdue', 'Avg response', 'SLA'].map(h => (
@@ -1036,7 +1049,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               )}
             </div>
@@ -1048,7 +1061,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                 <div className="kin-card" style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No resident data yet.</div>
               ) : (
                 <div className="kin-card" style={{ padding: 0, overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--color-border)', background: 'var(--color-bg)' }}>
                         {['Resident', 'Room', 'Total tickets', 'Open tickets', 'Incidents (30d)', 'Events (30d)', 'Last event'].map(h => (
@@ -1069,7 +1082,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               )}
             </div>
@@ -1115,7 +1128,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
               <div className="kin-card" style={{ maxWidth: 800 }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 16 }}>Tickets by category</div>
                 {categoryStats.length === 0 ? <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No tickets yet.</div> : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
                         {['Category', 'Total', 'Open', 'Avg response', 'SLA', 'SLA target'].map(h => (
@@ -1143,7 +1156,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                         )
                       })}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
             )}
@@ -1153,7 +1166,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
               <div className="kin-card" style={{ maxWidth: 800 }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 16 }}>Tickets by resident</div>
                 {residentTicketStats.length === 0 ? <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No tickets yet.</div> : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
                         {['Resident', 'Room', 'Total', 'Open', 'High priority', 'Last ticket'].map(h => (
@@ -1173,7 +1186,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
             )}
@@ -1183,7 +1196,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
               <div className="kin-card" style={{ maxWidth: 800 }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 16 }}>Tickets by staff member</div>
                 {staffTicketStats.length === 0 ? <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>No assigned tickets yet.</div> : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
                         {['Staff', 'Role', 'Total', 'Open', 'Resolved', 'Avg response'].map(h => (
@@ -1203,7 +1216,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
             )}
@@ -1211,7 +1224,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
             {/* All Tickets */}
             {ticketSubTab === 'all' && (
               <div className="kin-card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--color-border)', background: 'var(--color-bg)' }}>
                       {['Title', 'Resident', 'Category', 'Priority', 'Status', 'Assigned to', 'Created', 'SLA'].map(h => (
@@ -1239,7 +1252,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             )}
           </div>
