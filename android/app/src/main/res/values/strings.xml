@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Idene</string>
+    <string name="title_activity_main">Idene</string>
+    <string name="package_name">com.idene.app</string>
+    <string name="custom_url_scheme">com.idene.app</string>
+</resources>
