@@ -339,7 +339,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
 
       {mode === 'queue' && tickets.length === 0 && (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', flexDirection: 'column', gap: 8 }}>
-          <div style={{ fontSize: 32 }}>✅</div>
+          <div style={{ fontSize: 32, color: '#16a34a' }}>✓</div>
           <div>No tickets yet. Family escalations will appear here.</div>
         </div>
       )}

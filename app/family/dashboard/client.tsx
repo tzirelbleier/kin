@@ -22,19 +22,19 @@ function signOut() {
 }
 
 const EVENT_ICONS: Record<string, string> = {
-  meal: '🍽️', medication: '💊', activity: '🎯', incident: '🚨', vitals: '❤️', hygiene: '🛁', default: '📋',
+  meal: 'Meal', medication: 'Med', activity: 'Activity', incident: 'Alert', vitals: 'Vitals', hygiene: 'Hygiene', default: 'Note',
 }
 
 const SCHEDULE_ICONS: Record<string, string> = {
-  activity: '🎯', therapy: '💪', social: '👥', medical: '🏥', meal: '🍽️', personal: '✨', default: '📅',
+  activity: '◆', therapy: '+', social: '●', medical: '+', meal: '▲', personal: '★', default: '●',
 }
 
 const APPT_ICONS: Record<string, string> = {
-  medical: '🏥', therapy: '💪', family_visit: '👨‍👩‍👧', outing: '🚗', appointment: '📅', other: '📅',
+  medical: '+', therapy: '+', family_visit: '♥', outing: '→', appointment: '●', other: '●',
 }
 
 const MEAL_ICONS: Record<string, string> = {
-  breakfast: '🍳', lunch: '🥗', dinner: '🍴', snack: '🍎',
+  breakfast: '◑', lunch: '◕', dinner: '●', snack: '◔',
 }
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -456,7 +456,7 @@ function EventCard({ event, onEscalate, readOnly, linkedTicket }: {
             <span style={{ fontWeight: 600, fontSize: 14 }}>{event.title}</span>
             {isIncident && <span className="chip chip--urgent">Incident</span>}
             {isWarning && !isIncident && <span className="chip chip--high">Attention</span>}
-            {linkedTicket && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#ede9fe', color: '#6d28d9', fontWeight: 600 }}>🎫 Ticket open</span>}
+            {linkedTicket && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#ede9fe', color: '#6d28d9', fontWeight: 600 }}>Ticket open</span>}
           </div>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>{formatEventTime(event.occurred_at)}</div>
           {expanded && (
@@ -627,7 +627,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
             const linked = eventTicketMap[alert.id]
             return (
               <div key={alert.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <span style={{ fontSize: 20, flexShrink: 0 }}>🚨</span>
+                <span style={{ fontSize: 16, flexShrink: 0, color: '#dc2626', fontWeight: 700 }}>!</span>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontWeight: 700, color: '#991b1b', fontSize: 14 }}>Incident reported — {selectedResident?.full_name}</span>
                   <span style={{ color: '#b91c1c', fontSize: 13, marginLeft: 8 }}>{alert.title}</span>
@@ -635,7 +635,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
                   {alert.detail && <div style={{ fontSize: 13, color: '#7f1d1d', marginTop: 2 }}>{alert.detail}</div>}
                   {linked && (
                     <div style={{ marginTop: 4, fontSize: 12, color: '#991b1b' }}>
-                      🎫 Ticket: <span style={{ fontWeight: 600 }}>{linked.title}</span>
+                      Ticket: <span style={{ fontWeight: 600 }}>{linked.title}</span>
                       <span style={{ marginLeft: 8 }}><span className={`chip chip--${linked.status}`}>{STATUS_LABELS[linked.status]}</span></span>
                       <button className="btn btn--sm" style={{ marginLeft: 8, background: 'transparent', border: '1px solid #fca5a5', color: '#991b1b', padding: '1px 8px', fontSize: 11 }} onClick={() => setMainView('tickets')}>View</button>
                     </div>
@@ -674,7 +674,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
 
           {selectedResident && (
             <>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, marginBottom: 10 }}>👤</div>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#1d4ed8', marginBottom: 10 }}>{selectedResident.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}</div>
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{selectedResident.full_name}</h2>
               <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 14 }}>{selectedResident.room_number ? `Room ${selectedResident.room_number}` : 'Room TBD'}</p>
 
@@ -695,10 +695,10 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
 
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Today</div>
               {[
-                { label: '🍽️ Meals', value: `${currentEvents.filter(e => e.event_type === 'meal').length} logged` },
-                { label: '💊 Meds', value: currentEvents.some(e => e.event_type === 'medication') ? 'Administered' : 'None logged' },
-                { label: '🎯 Activities', value: `${currentEvents.filter(e => e.event_type === 'activity').length} session(s)` },
-                { label: '🚨 Incidents', value: currentEvents.some(e => e.severity === 'incident') ? 'See feed' : 'None' },
+                { label: 'Meals', value: `${currentEvents.filter(e => e.event_type === 'meal').length} logged` },
+                { label: 'Meds', value: currentEvents.some(e => e.event_type === 'medication') ? 'Administered' : 'None logged' },
+                { label: 'Activities', value: `${currentEvents.filter(e => e.event_type === 'activity').length} session(s)` },
+                { label: 'Incidents', value: currentEvents.some(e => e.severity === 'incident') ? 'See feed' : 'None' },
               ].map(row => (
                 <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--color-border-light)', fontSize: 12 }}>
                   <span>{row.label}</span>

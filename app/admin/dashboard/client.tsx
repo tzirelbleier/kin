@@ -19,11 +19,11 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 const ACTION_ICONS: Record<string, string> = {
-  'ticket.created': '🎫',
-  'ticket.updated': '✏️',
-  'ticket.auto_created': '🚨',
-  'message.created': '📨',
-  'care_event.ingested': '📡',
+  'ticket.created': '+',
+  'ticket.updated': '~',
+  'ticket.auto_created': '!',
+  'message.created': '>',
+  'care_event.ingested': '*',
 }
 
 const PRIORITY_OPTIONS: TicketPriority[] = ['low', 'normal', 'high', 'urgent']
@@ -66,7 +66,7 @@ function IntegrationCard({ icon, name, status, description, statusLabel, action 
 }) {
   return (
     <div className="kin-card" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-      <div style={{ fontSize: 28, flexShrink: 0, marginTop: 2 }}>{icon}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 2, width: 36, height: 36, borderRadius: 8, background: '#f1f5f9', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', letterSpacing: 0.5 }}>{icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <span style={{ fontWeight: 700, fontSize: 15 }}>{name}</span>
@@ -1276,7 +1276,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {auditLog.map(entry => (
                   <div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>{ACTION_ICONS[entry.action] ?? '📋'}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, flexShrink: 0, width: 24, height: 24, borderRadius: 6, background: '#f1f5f9', color: '#475569', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{ACTION_ICONS[entry.action] ?? '*'}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: 13 }}>{entry.action}</div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{entry.entity_type}{entry.entity_id ? ` · ${entry.entity_id.slice(0, 8)}…` : ''}</div>
@@ -1299,10 +1299,10 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Integrations</h2>
               <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Configure data sources for care events.</p>
             </div>
-            <IntegrationCard icon="📊" name="Excel / CSV Upload" status="active" description="Manually upload care event data from a spreadsheet." statusLabel="Active" action={<button className="btn btn--primary btn--sm" onClick={() => setTab('import')}>Open import tool →</button>} />
-            <IntegrationCard icon="🏥" name="PointClickCare" status="inactive" description="Connect via webhook. Care events are pushed to Idene in real time." statusLabel="Not connected" action={<WebhookConfig name="PointClickCare" webhookPath="/api/webhooks/events" sourceSlug="pointclickcare" />} />
-            <IntegrationCard icon="📋" name="Tabula Pro" status="inactive" description="Receive care events from Tabula Pro via webhook." statusLabel="Not connected" action={<WebhookConfig name="Tabula Pro" webhookPath="/api/webhooks/events" sourceSlug="tabulapro" />} />
-            <IntegrationCard icon="🔗" name="MatrixCare" status="inactive" description="Receive care events from MatrixCare via webhook." statusLabel="Not connected" action={<WebhookConfig name="MatrixCare" webhookPath="/api/webhooks/events" sourceSlug="matrixcare" />} />
+            <IntegrationCard icon="XLS" name="Excel / CSV Upload" status="active" description="Manually upload care event data from a spreadsheet." statusLabel="Active" action={<button className="btn btn--primary btn--sm" onClick={() => setTab('import')}>Open import tool →</button>} />
+            <IntegrationCard icon="PCC" name="PointClickCare" status="inactive" description="Connect via webhook. Care events are pushed to Idene in real time." statusLabel="Not connected" action={<WebhookConfig name="PointClickCare" webhookPath="/api/webhooks/events" sourceSlug="pointclickcare" />} />
+            <IntegrationCard icon="TAB" name="Tabula Pro" status="inactive" description="Receive care events from Tabula Pro via webhook." statusLabel="Not connected" action={<WebhookConfig name="Tabula Pro" webhookPath="/api/webhooks/events" sourceSlug="tabulapro" />} />
+            <IntegrationCard icon="MX" name="MatrixCare" status="inactive" description="Receive care events from MatrixCare via webhook." statusLabel="Not connected" action={<WebhookConfig name="MatrixCare" webhookPath="/api/webhooks/events" sourceSlug="matrixcare" />} />
           </div>
         )}
       </div>
