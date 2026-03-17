@@ -438,7 +438,7 @@ function TicketsView({ tickets, loading, readOnly }: { tickets: ResidentTicket[]
 // ----------------------------------------------------------------
 function EventCard({ event, onEscalate, readOnly, linkedTicket }: {
   event: CareEvent
-  onEscalate: (event: CareEvent, type: 'question' | 'concern') => void
+  onEscalate: (event: CareEvent) => void
   readOnly?: boolean
   linkedTicket?: ResidentTicket
 }) {
@@ -472,8 +472,7 @@ function EventCard({ event, onEscalate, readOnly, linkedTicket }: {
               )}
               {!readOnly && (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn btn--secondary btn--sm" onClick={e => { e.stopPropagation(); onEscalate(event, 'question') }}>❓ Ask a question</button>
-                  <button className="btn btn--sm" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }} onClick={e => { e.stopPropagation(); onEscalate(event, 'concern') }}>⚠️ Raise a concern</button>
+                  <button className="btn btn--primary btn--sm" onClick={e => { e.stopPropagation(); onEscalate(event) }}>Contact care team</button>
                 </div>
               )}
               {readOnly && <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Read-only view</div>}
@@ -588,7 +587,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
   if (residents.length === 0) {
     return (
       <div className="kin-page">
-        <nav className="kin-nav"><span className="kin-nav__brand">Idene</span></nav>
+        <nav className="kin-nav kin-nav--dark"><span className="kin-nav__brand">Idene</span></nav>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>No residents found.</div>
       </div>
     )
@@ -604,20 +603,20 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
 
   return (
     <div className="kin-page">
-      <nav className="kin-nav">
+      <nav className="kin-nav kin-nav--dark">
         {returnTo && (
-          <a href={returnTo} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-text-secondary)', textDecoration: 'none', marginRight: 8, padding: '4px 8px', borderRadius: 6, background: 'var(--color-bg)' }}>
+          <a href={returnTo} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-nav-dark-muted)', textDecoration: 'none', marginRight: 8, padding: '4px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.07)' }}>
             ← Back
           </a>
         )}
         <span className="kin-nav__brand">Idene</span>
-        <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Family Portal</span>
-        {readOnly && <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99, background: '#f3f4f6', color: '#6b7280', marginLeft: 8 }}>Read-only</span>}
+        <span style={{ fontSize: 13, color: 'var(--color-nav-dark-muted)' }}>Family Portal</span>
+        {readOnly && <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99, background: 'rgba(255,255,255,0.1)', color: 'var(--color-nav-dark-muted)', marginLeft: 8 }}>Read-only</span>}
         <span className="kin-nav__spacer" />
         {selectedResident && !readOnly && (
           <button className="btn btn--primary btn--sm" onClick={() => openModal()}>+ Contact care team</button>
         )}
-        <button className="btn btn--secondary btn--sm" onClick={signOut}>Sign out</button>
+        <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' }} onClick={signOut}>Sign out</button>
       </nav>
 
       {/* Incident alert banner */}
@@ -642,7 +641,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
                   )}
                 </div>
                 {!readOnly && (
-                  <button className="btn btn--sm" style={{ background: '#dc2626', color: '#fff', border: 'none', flexShrink: 0 }} onClick={() => openModal(alert, 'concern')}>Contact care team</button>
+                  <button className="btn btn--danger btn--sm" style={{ flexShrink: 0 }} onClick={() => openModal(alert, 'concern')}>Contact care team</button>
                 )}
               </div>
             )

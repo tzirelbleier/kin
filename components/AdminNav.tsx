@@ -22,21 +22,8 @@ export function AdminNav() {
   ]
 
   return (
-    <nav style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-      minHeight: 44,
-      background: '#0f172a',
-      borderBottom: '1px solid #1e293b',
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 16px',
-      gap: 4,
-      fontSize: 13,
-      flexWrap: 'wrap',
-    }}>
-      <span style={{ color: '#94a3b8', fontWeight: 700, marginRight: 4, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
+    <nav className="kin-nav kin-nav--dark" style={{ gap: 4, fontSize: 13, flexWrap: 'wrap', zIndex: 50 }}>
+      <span style={{ color: 'var(--color-nav-dark-muted)', fontWeight: 700, marginRight: 4, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
         Idene Admin
       </span>
 
@@ -55,8 +42,8 @@ export function AdminNav() {
                 borderRadius: 6,
                 textDecoration: 'none',
                 fontWeight: active ? 600 : 400,
-                background: active ? '#1e40af' : 'transparent',
-                color: active ? '#fff' : '#94a3b8',
+                background: active ? 'var(--color-nav-dark-active)' : 'transparent',
+                color: active ? '#fff' : 'var(--color-nav-dark-muted)',
                 transition: 'background 0.1s, color 0.1s',
                 whiteSpace: 'nowrap',
                 minHeight: 36,
@@ -73,10 +60,10 @@ export function AdminNav() {
         onClick={signOut}
         style={{
           background: 'transparent',
-          border: '1px solid #334155',
+          border: '1px solid var(--color-nav-dark-border)',
           borderRadius: 6,
           padding: '6px 12px',
-          color: '#94a3b8',
+          color: 'var(--color-nav-dark-muted)',
           fontSize: 13,
           cursor: 'pointer',
           minHeight: 36,

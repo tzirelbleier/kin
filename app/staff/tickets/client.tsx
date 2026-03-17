@@ -310,27 +310,27 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
     <div className="kin-page">
       <nav className="kin-nav kin-nav--dark">
         <span className="kin-nav__brand">Idene</span>
-        <span style={{ fontSize: 13, color: '#9ca3af' }}>Staff Portal</span>
+        <span style={{ fontSize: 13, color: 'var(--color-nav-dark-muted)' }}>Staff Portal</span>
         <span className="kin-nav__spacer" />
         {overdueCount > 0 && <span className="chip chip--urgent">{overdueCount} overdue</span>}
         <button
-          className={`btn btn--sm ${mode === 'queue' ? 'btn--primary' : 'btn--secondary'}`}
-          style={{ background: mode === 'queue' ? undefined : 'transparent', border: '1px solid #374151', color: mode === 'queue' ? undefined : '#9ca3af' }}
+          className={`btn btn--sm ${mode === 'queue' ? 'btn--primary' : ''}`}
+          style={mode !== 'queue' ? { background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' } : undefined}
           onClick={() => setMode('queue')}
         >
           Queue
         </button>
         <button
-          className={`btn btn--sm ${mode === 'reports' ? 'btn--primary' : 'btn--secondary'}`}
-          style={{ background: mode === 'reports' ? undefined : 'transparent', border: '1px solid #374151', color: mode === 'reports' ? undefined : '#9ca3af' }}
+          className={`btn btn--sm ${mode === 'reports' ? 'btn--primary' : ''}`}
+          style={mode !== 'reports' ? { background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' } : undefined}
           onClick={() => setMode('reports')}
         >
           Reports
         </button>
-        <a href="/family/dashboard?returnTo=/staff/tickets" className="btn btn--sm" style={{ background: 'transparent', border: '1px solid #374151', color: '#9ca3af', textDecoration: 'none' }}>
+        <a href="/family/dashboard?returnTo=/staff/tickets" className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)', textDecoration: 'none' }}>
           Family view
         </a>
-        <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid #374151', color: '#9ca3af' }} onClick={signOut}>Sign out</button>
+        <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' }} onClick={signOut}>Sign out</button>
       </nav>
 
       {mode === 'reports' && (
