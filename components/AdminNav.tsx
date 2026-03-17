@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase'
 
-export function AdminNav() {
+export function AdminNav({ role }: { role?: string }) {
   const pathname = usePathname()
   const router = useRouter()
 

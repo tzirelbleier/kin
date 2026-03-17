@@ -30,7 +30,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {isAdmin && <AdminNav />}
+        {isAdmin && <AdminNav role={profile!.role as 'admin' | 'director'} />}
         {children}
       </body>
     </html>
