@@ -39,11 +39,11 @@
   --color-normal: #0d9488;
   --color-low: #94a3b8;
 
-  /* Unified dark nav — same across all portals */
-  --color-nav-dark: #1a1a1a;
-  --color-nav-dark-text: #f5f5f5;
-  --color-nav-dark-border: #2e2e2e;
-  --color-nav-dark-muted: #a3a3a3;
+  /* Unified dark nav — deep slate-plum, complements teal */
+  --color-nav-dark: #1e1b2e;
+  --color-nav-dark-text: #f0eef5;
+  --color-nav-dark-border: #2d2a3e;
+  --color-nav-dark-muted: #a8a3b8;
   --color-nav-dark-active: #115e59;
 
   /* Shadows */
