@@ -31,8 +31,8 @@ const ROLE_OPTIONS: UserRole[] = ['staff', 'nurse', 'admin', 'director']
 const ALL_ROLE_OPTIONS: UserRole[] = ['family', 'staff', 'nurse', 'admin', 'director']
 
 const ROLE_BADGE_COLORS: Record<UserRole, { bg: string; color: string }> = {
-  director: { bg: '#dbeafe', color: '#1d4ed8' },
-  admin: { bg: '#ede9fe', color: '#6d28d9' },
+  director: { bg: '#ccfbf1', color: '#134e4a' },
+  admin: { bg: '#ccfbf1', color: '#134e4a' },
   nurse: { bg: '#dcfce7', color: '#15803d' },
   staff: { bg: '#f3f4f6', color: '#374151' },
   family: { bg: '#fff7ed', color: '#c2410c' },
@@ -270,7 +270,7 @@ function UsersTab({ initialProfiles }: { initialProfiles: Profile[] }) {
               <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border-light)', opacity: p.is_active === false ? 0.5 : 1 }}>
                 <td style={{ padding: '12px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#1d4ed8', flexShrink: 0 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-primary-mid)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#134e4a', flexShrink: 0 }}>
                       {p.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <span style={{ fontWeight: 600, fontSize: 13 }}>{p.full_name}</span>
@@ -513,7 +513,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
                       <td style={{ padding: '10px 16px' }}>{a.title}</td>
                       <td style={{ padding: '10px 16px', color: 'var(--color-text-secondary)' }}>{a.appointment_type}</td>
                       <td style={{ padding: '10px 16px', color: 'var(--color-text-secondary)' }}>{a.location ?? '—'}</td>
-                      <td style={{ padding: '10px 16px' }}><span style={{ padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 600, background: a.status === 'scheduled' ? '#dbeafe' : '#f3f4f6', color: a.status === 'scheduled' ? '#1d4ed8' : '#6b7280' }}>{a.status}</span></td>
+                      <td style={{ padding: '10px 16px' }}><span style={{ padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 600, background: a.status === 'scheduled' ? 'var(--color-primary-mid)' : '#f3f4f6', color: a.status === 'scheduled' ? '#134e4a' : '#6b7280' }}>{a.status}</span></td>
                       <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
                         <button className="btn btn--secondary btn--sm" onClick={() => setApptModal(a)} style={{ marginRight: 6 }}>Edit</button>
                         <button className="btn btn--secondary btn--sm" style={{ color: '#ef4444' }} onClick={() => deleteAppointment(a.id)}>Delete</button>
@@ -1031,7 +1031,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
                         <tr key={row.profile.id} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
                           <td style={{ padding: '12px 14px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#1d4ed8', flexShrink: 0 }}>
+                              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-primary-mid)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#134e4a', flexShrink: 0 }}>
                                 {row.profile.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                               </div>
                               <span style={{ fontWeight: 600, fontSize: 13 }}>{row.profile.full_name}</span>

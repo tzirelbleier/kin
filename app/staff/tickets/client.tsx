@@ -22,8 +22,9 @@ function signOut() {
 
 const STATUS_TABS: (TicketStatus | 'all')[] = ['all', 'open', 'assigned', 'in_progress', 'pending_family', 'resolved']
 
-function SlaChip({ due_by }: { due_by: string | null }) {
+function SlaChip({ due_by, status }: { due_by: string | null; status: string }) {
   if (!due_by) return null
+  if (['resolved', 'closed'].includes(status)) return null
   const hours = getRemainingHours(due_by)
   const overdue = isOverdue(due_by)
   if (hours === null) return null
@@ -71,7 +72,7 @@ function StaffReports({ tickets }: { tickets: Ticket[] }) {
   })).filter(p => p.count > 0)
   const maxPriority = Math.max(...byPriority.map(p => p.count), 1)
 
-  const priorityColors: Record<string, string> = { urgent: '#ef4444', high: '#f97316', normal: '#3b82f6', low: '#9ca3af' }
+  const priorityColors: Record<string, string> = { urgent: '#ef4444', high: '#f97316', normal: '#0d9488', low: '#9ca3af' }
 
   // By category
   const categories = Object.keys(PRIORITY_ROUTING) as TicketCategory[]
@@ -267,7 +268,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
     }
   }, [statusFilter, mineOnly, urgentOnly])
 
-  const overdueCount = tickets.filter((t) => isOverdue(t.due_by)).length
+  const overdueCount = tickets.filter((t) => isOverdue(t.due_by) && !['resolved', 'closed'].includes(t.status)).length
   const selected = filtered.find((t) => t.id === selectedId) ?? null
   const threadMessages = selected
     ? [...(selected.messages ?? []), ...(localMessages[selected.id] ?? [])]
@@ -396,7 +397,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
                   </div>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <span className={`chip chip--${ticket.status}`}>{STATUS_LABELS[ticket.status]}</span>
-                    <SlaChip due_by={ticket.due_by} />
+                    <SlaChip due_by={ticket.due_by} status={ticket.status} />
                   </div>
                 </div>
               ))}
@@ -424,7 +425,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <span className={`chip chip--${selected.status}`}>{STATUS_LABELS[selected.status]}</span>
-                      <SlaChip due_by={selected.due_by} />
+                      <SlaChip due_by={selected.due_by} status={selected.status} />
                       {!['resolved', 'closed'].includes(selected.status) && (
                         <button className="btn btn--success btn--sm" onClick={() => setResolveModal(true)}>✓ Resolve</button>
                       )}

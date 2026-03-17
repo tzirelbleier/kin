@@ -673,7 +673,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
 
           {selectedResident && (
             <>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#1d4ed8', marginBottom: 10 }}>{selectedResident.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}</div>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-primary-mid)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#134e4a', marginBottom: 10 }}>{selectedResident.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}</div>
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{selectedResident.full_name}</h2>
               <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 14 }}>{selectedResident.room_number ? `Room ${selectedResident.room_number}` : 'Room TBD'}</p>
 
