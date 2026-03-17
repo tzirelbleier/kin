@@ -587,7 +587,7 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
   if (residents.length === 0) {
     return (
       <div className="kin-page">
-        <nav className="kin-nav kin-nav--dark"><span className="kin-nav__brand">Idene</span></nav>
+        {!isAdmin && <nav className="kin-nav kin-nav--dark"><span className="kin-nav__brand">Idene</span></nav>}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>No residents found.</div>
       </div>
     )
@@ -603,21 +603,25 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
 
   return (
     <div className="kin-page">
-      <nav className="kin-nav kin-nav--dark">
-        {returnTo && (
-          <a href={returnTo} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-nav-dark-muted)', textDecoration: 'none', marginRight: 8, padding: '4px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.07)' }}>
-            ← Back
-          </a>
-        )}
-        <span className="kin-nav__brand">Idene</span>
-        <span style={{ fontSize: 13, color: 'var(--color-nav-dark-muted)' }}>Family Portal</span>
-        {readOnly && <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99, background: 'rgba(255,255,255,0.1)', color: 'var(--color-nav-dark-muted)', marginLeft: 8 }}>Read-only</span>}
-        <span className="kin-nav__spacer" />
-        {selectedResident && !readOnly && (
-          <button className="btn btn--primary btn--sm" onClick={() => openModal()}>+ Contact care team</button>
-        )}
-        <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' }} onClick={signOut}>Sign out</button>
-      </nav>
+      {!isAdmin ? (
+        <nav className="kin-nav kin-nav--dark">
+          <span className="kin-nav__brand">Idene</span>
+          <span style={{ fontSize: 13, color: 'var(--color-nav-dark-muted)' }}>Family Portal</span>
+          <span className="kin-nav__spacer" />
+          {selectedResident && !readOnly && (
+            <button className="btn btn--primary btn--sm" onClick={() => openModal()}>+ Contact care team</button>
+          )}
+          <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' }} onClick={signOut}>Sign out</button>
+        </nav>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}>
+          {readOnly && <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99, background: '#f3f4f6', color: '#6b7280' }}>Read-only</span>}
+          <span className="kin-nav__spacer" />
+          {selectedResident && !readOnly && (
+            <button className="btn btn--primary btn--sm" onClick={() => openModal()}>+ Contact care team</button>
+          )}
+        </div>
+      )}
 
       {/* Incident alert banner */}
       {alerts.length > 0 && (

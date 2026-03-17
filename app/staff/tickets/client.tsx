@@ -236,9 +236,10 @@ interface Props {
     messages?: (TicketMessage & { author?: { full_name: string; role: string } })[]
   })[]
   profileId: string
+  isAdmin?: boolean
 }
 
-export function StaffTicketsClient({ tickets, profileId }: Props) {
+export function StaffTicketsClient({ tickets, profileId, isAdmin }: Props) {
   const isMobile = useIsMobile()
   const [mobileView, setMobileView] = useState<'queue' | 'thread'>('queue')
   const [mode, setMode] = useState<'queue' | 'reports'>('queue')
@@ -309,30 +310,46 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
 
   return (
     <div className="kin-page">
-      <nav className="kin-nav kin-nav--dark">
-        <span className="kin-nav__brand">Idene</span>
-        <span style={{ fontSize: 13, color: 'var(--color-nav-dark-muted)' }}>Staff Portal</span>
-        <span className="kin-nav__spacer" />
-        {overdueCount > 0 && <span className="chip chip--urgent">{overdueCount} overdue</span>}
-        <button
-          className={`btn btn--sm ${mode === 'queue' ? 'btn--primary' : ''}`}
-          style={mode !== 'queue' ? { background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' } : undefined}
-          onClick={() => setMode('queue')}
-        >
-          Queue
-        </button>
-        <button
-          className={`btn btn--sm ${mode === 'reports' ? 'btn--primary' : ''}`}
-          style={mode !== 'reports' ? { background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' } : undefined}
-          onClick={() => setMode('reports')}
-        >
-          Reports
-        </button>
-        <a href="/family/dashboard?returnTo=/staff/tickets" className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)', textDecoration: 'none' }}>
-          Family view
-        </a>
-        <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' }} onClick={signOut}>Sign out</button>
-      </nav>
+      {!isAdmin && (
+        <nav className="kin-nav kin-nav--dark">
+          <span className="kin-nav__brand">Idene</span>
+          <span style={{ fontSize: 13, color: 'var(--color-nav-dark-muted)' }}>Staff Portal</span>
+          <span className="kin-nav__spacer" />
+          {overdueCount > 0 && <span className="chip chip--urgent">{overdueCount} overdue</span>}
+          <button
+            className={`btn btn--sm ${mode === 'queue' ? 'btn--primary' : ''}`}
+            style={mode !== 'queue' ? { background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' } : undefined}
+            onClick={() => setMode('queue')}
+          >
+            Queue
+          </button>
+          <button
+            className={`btn btn--sm ${mode === 'reports' ? 'btn--primary' : ''}`}
+            style={mode !== 'reports' ? { background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' } : undefined}
+            onClick={() => setMode('reports')}
+          >
+            Reports
+          </button>
+          <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' }} onClick={signOut}>Sign out</button>
+        </nav>
+      )}
+      {isAdmin && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}>
+          {overdueCount > 0 && <span className="chip chip--urgent">{overdueCount} overdue</span>}
+          <button
+            className={`btn btn--sm ${mode === 'queue' ? 'btn--primary' : 'btn--secondary'}`}
+            onClick={() => setMode('queue')}
+          >
+            Queue
+          </button>
+          <button
+            className={`btn btn--sm ${mode === 'reports' ? 'btn--primary' : 'btn--secondary'}`}
+            onClick={() => setMode('reports')}
+          >
+            Reports
+          </button>
+        </div>
+      )}
 
       {mode === 'reports' && (
         <StaffReports tickets={tickets} />
