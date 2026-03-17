@@ -92,11 +92,11 @@ function WebhookConfig({ name, webhookPath, sourceSlug }: { name: string; webhoo
           <div style={{ fontWeight: 600, marginBottom: 10 }}>Configure {name} webhook</div>
           <div style={{ marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 4 }}>Webhook URL</div>
-            <code style={{ display: 'block', background: '#1e293b', color: '#e2e8f0', padding: '8px 12px', borderRadius: 6, fontSize: 12, wordBreak: 'break-all' }}>{appUrl}{webhookPath}</code>
+            <code style={{ display: 'block', background: '#1a1a1a', color: '#e2e8f0', padding: '8px 12px', borderRadius: 6, fontSize: 12, wordBreak: 'break-all' }}>{appUrl}{webhookPath}</code>
           </div>
           <div style={{ marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 4 }}>Required header</div>
-            <code style={{ display: 'block', background: '#1e293b', color: '#e2e8f0', padding: '8px 12px', borderRadius: 6, fontSize: 12 }}>x-kin-webhook-secret: {'<WEBHOOK_SECRET>'}</code>
+            <code style={{ display: 'block', background: '#1a1a1a', color: '#e2e8f0', padding: '8px 12px', borderRadius: 6, fontSize: 12 }}>x-kin-webhook-secret: {'<WEBHOOK_SECRET>'}</code>
           </div>
           <div style={{ padding: '10px 12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, color: '#92400e', fontSize: 12 }}>
             💡 Once events are received, this integration shows as Active automatically.
