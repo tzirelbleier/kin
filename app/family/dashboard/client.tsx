@@ -456,7 +456,7 @@ function EventCard({ event, onEscalate, readOnly, linkedTicket }: {
             <span style={{ fontWeight: 600, fontSize: 14 }}>{event.title}</span>
             {isIncident && <span className="chip chip--urgent">Incident</span>}
             {isWarning && !isIncident && <span className="chip chip--high">Attention</span>}
-            {linkedTicket && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#ede9fe', color: '#6d28d9', fontWeight: 600 }}>Ticket open</span>}
+            {linkedTicket && <span className={`chip chip--${linkedTicket.status}`} style={{ fontSize: 11 }}>{STATUS_LABELS[linkedTicket.status]}</span>}
           </div>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>{formatEventTime(event.occurred_at)}</div>
           {expanded && (
