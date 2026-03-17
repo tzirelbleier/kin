@@ -151,7 +151,7 @@ export function EscalateModal({
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-sm)',
                   background: 'var(--color-primary-light)',
-                  border: '1px solid #bfdbfe',
+                  border: '1px solid #99f6e4',
                   fontSize: 12,
                   color: 'var(--color-primary)',
                   display: 'flex',

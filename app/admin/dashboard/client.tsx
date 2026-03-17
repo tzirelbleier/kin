@@ -586,7 +586,7 @@ function PlanningTab({ residents }: { residents: { id: string; full_name: string
                 const dayMenus = menus.filter(m => m.date === dateStr)
                 const isToday = dateStr === new Date().toISOString().slice(0, 10)
                 return (
-                  <div key={dateStr} className="kin-card" style={{ padding: 12, minHeight: 120, background: isToday ? '#eff6ff' : undefined, borderColor: isToday ? '#93c5fd' : undefined }}>
+                  <div key={dateStr} className="kin-card" style={{ padding: 12, minHeight: 120, background: isToday ? 'var(--color-primary-light)' : undefined, borderColor: isToday ? '#5eead4' : undefined }}>
                     <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8 }}>{DAY_NAMES[(di + 1) % 7]}<br /><span style={{ fontWeight: 400, color: 'var(--color-text-secondary)' }}>{date.toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span></div>
                     {MEAL_TYPES.map(mt => {
                       const item = dayMenus.find(m => m.meal_type === mt)
@@ -914,7 +914,7 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: 'var(--color-text-muted)', marginBottom: 12 }}>Facility Overview</div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(6, 1fr)', gap: 12 }}>
-                <StatCard label="Total tickets" value={total} color="#2563eb" />
+                <StatCard label="Total tickets" value={total} color="#0d9488" />
                 <StatCard label="Open" value={open.length} color="#d97706" />
                 <StatCard label="Resolved" value={resolved.length} color="#16a34a" />
                 <StatCard label="Resolved this week" value={resolvedThisWeek.length} color="#059669" />
@@ -925,9 +925,9 @@ export function AdminDashboardClient({ tickets, events, auditLog, facilityId, pr
 
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
               <StatCard label="Avg first response" value={`${avgResponseH}h`} color="#7c3aed" />
-              <StatCard label="Tickets with response" value={`${responded.length}/${total}`} color="#2563eb" />
+              <StatCard label="Tickets with response" value={`${responded.length}/${total}`} color="#0d9488" />
               <StatCard label="Auto-updates today" value={todayEvents} color="#d97706" />
-              <StatCard label="Active users" value={profiles.filter(p => p.is_active !== false).length} color="#0891b2" />
+              <StatCard label="Active users" value={profiles.filter(p => p.is_active !== false).length} color="#0d9488" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>

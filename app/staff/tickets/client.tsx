@@ -111,7 +111,7 @@ function StaffReports({ tickets }: { tickets: Ticket[] }) {
 
       {/* KPI row */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12 }}>
-        <StatCard label="Total tickets" value={tickets.length} color="#2563eb" />
+        <StatCard label="Total tickets" value={tickets.length} color="#0d9488" />
         <StatCard label="Open" value={open.length} sub="awaiting action" color="#d97706" />
         <StatCard label="Resolved this week" value={resolvedThisWeek.length} color="#16a34a" />
         <StatCard label="Overdue" value={overdue.length} sub="past SLA" color="#dc2626" />
@@ -214,7 +214,7 @@ function StaffReports({ tickets }: { tickets: Ticket[] }) {
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Tickets with response</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: '#2563eb' }}>{responded.length} / {tickets.length}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: '#0d9488' }}>{responded.length} / {tickets.length}</div>
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Resolution rate</div>
@@ -455,7 +455,7 @@ export function StaffTicketsClient({ tickets, profileId }: Props) {
                         <div style={{
                           padding: '10px 14px',
                           borderRadius: isStaff ? '12px 4px 12px 12px' : '4px 12px 12px 12px',
-                          background: msg.is_internal ? 'transparent' : (isStaff ? '#2563eb' : '#f3f4f6'),
+                          background: msg.is_internal ? 'transparent' : (isStaff ? '#0d9488' : '#f3f4f6'),
                           border: msg.is_internal ? '1px dashed #a78bfa' : 'none',
                           color: (!msg.is_internal && isStaff) ? '#fff' : 'inherit',
                           fontSize: 13, lineHeight: 1.6,

@@ -50,7 +50,7 @@ export function TicketBadge({ residentId, familyProfileId }: TicketBadgeProps) {
       height: 18,
       padding: '0 5px',
       borderRadius: 9,
-      background: '#2563eb',
+      background: '#0d9488',
       color: '#fff',
       fontSize: 11,
       fontWeight: 700,

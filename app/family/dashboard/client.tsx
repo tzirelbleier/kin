@@ -309,7 +309,7 @@ function ReportsView({ events }: { events: CareEvent[] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
-        <StatCard label="Events (last 7d)" value={last7.length} color="#2563eb" />
+        <StatCard label="Events (last 7d)" value={last7.length} color="#0d9488" />
         <StatCard label="Events (last 30d)" value={last30.length} color="#7c3aed" />
         <StatCard label="Incidents (30d)" value={last30.filter(e => e.severity === 'incident').length} color="#dc2626" />
         <StatCard label="Medication events" value={last30.filter(e => e.event_type === 'medication').length} sub="last 30 days" color="#16a34a" />
@@ -411,7 +411,7 @@ function TicketsView({ tickets, loading, readOnly }: { tickets: ResidentTicket[]
                             <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 4, textAlign: isStaff ? 'right' : 'left' }}>
                               {msg.author?.full_name ?? (isStaff ? 'Care team' : 'You')} · {new Date(msg.created_at).toLocaleString()}
                             </div>
-                            <div style={{ padding: '8px 12px', borderRadius: isStaff ? '12px 4px 12px 12px' : '4px 12px 12px 12px', background: isStaff ? '#2563eb' : '#f3f4f6', color: isStaff ? '#fff' : 'inherit', fontSize: 13, lineHeight: 1.6 }}>
+                            <div style={{ padding: '8px 12px', borderRadius: isStaff ? '12px 4px 12px 12px' : '4px 12px 12px 12px', background: isStaff ? '#0d9488' : '#f3f4f6', color: isStaff ? '#fff' : 'inherit', fontSize: 13, lineHeight: 1.6 }}>
                               {msg.body}
                             </div>
                           </div>

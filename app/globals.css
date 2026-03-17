@@ -148,7 +148,7 @@ input, textarea, select {
 }
 
 .kin-nav--dark .kin-nav__brand {
-  color: #60a5fa;
+  color: #5eead4;
 }
 
 .kin-nav__spacer {
@@ -262,7 +262,7 @@ input, textarea, select {
 
 .chip--open       { background: var(--color-primary-mid); color: #134e4a; }
 .chip--assigned   { background: #fef3c7; color: #92400e; }
-.chip--in_progress { background: #e0f2fe; color: #075985; }
+.chip--in_progress { background: var(--color-primary-mid); color: #115e59; }
 .chip--pending_family { background: #f3e8ff; color: #6b21a8; }
 .chip--resolved   { background: #dcfce7; color: #14532d; }
 .chip--closed     { background: #f3f4f6; color: #374151; }
@@ -403,8 +403,8 @@ input, textarea, select {
 }
 
 .source-badge--auto {
-  background: #e0f2fe;
-  color: #0369a1;
+  background: var(--color-primary-mid);
+  color: #115e59;
 }
 
 /* ================================================================
