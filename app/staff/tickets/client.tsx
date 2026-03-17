@@ -330,6 +330,9 @@ export function StaffTicketsClient({ tickets, profileId, isAdmin }: Props) {
           >
             Reports
           </button>
+          <a href="/family/dashboard?returnTo=/staff/tickets" className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)', textDecoration: 'none' }}>
+            Family view
+          </a>
           <button className="btn btn--sm" style={{ background: 'transparent', border: '1px solid var(--color-nav-dark-border)', color: 'var(--color-nav-dark-muted)' }} onClick={signOut}>Sign out</button>
         </nav>
       )}
