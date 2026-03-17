@@ -495,12 +495,11 @@ interface Props {
   profileId: string
   isAdmin: boolean
   readOnly?: boolean
-  returnTo?: string | null
 }
 
 type MainView = 'feed' | 'calendar' | 'menu' | 'tickets' | 'reports'
 
-export function FamilyDashboardClient({ residents, initialEvents, facilityId, profileId, isAdmin, readOnly, returnTo }: Props) {
+export function FamilyDashboardClient({ residents, initialEvents, facilityId, profileId, isAdmin, readOnly }: Props) {
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedResident, setSelectedResident] = useState<Resident | null>(residents[0] ?? null)
@@ -615,16 +614,8 @@ export function FamilyDashboardClient({ residents, initialEvents, facilityId, pr
         </nav>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}>
-          {returnTo && (
-            <a href={returnTo} className="btn btn--secondary btn--sm" style={{ textDecoration: 'none' }}>
-              ← Back
-            </a>
-          )}
           {readOnly && <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99, background: '#f3f4f6', color: '#6b7280' }}>Read-only</span>}
           <span className="kin-nav__spacer" />
-          {selectedResident && !readOnly && (
-            <button className="btn btn--primary btn--sm" onClick={() => openModal()}>+ Contact care team</button>
-          )}
         </div>
       )}
 

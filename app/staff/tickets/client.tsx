@@ -318,7 +318,7 @@ export function StaffTicketsClient({ tickets, profileId, isAdmin }: Props) {
           </span>
           <div style={{ display: 'flex', gap: 2, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
             <a
-              href="/family/dashboard?returnTo=/staff/tickets"
+              href="/family/dashboard"
               style={{
                 display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6,
                 textDecoration: 'none', fontWeight: 400, background: 'transparent',

@@ -6,22 +6,14 @@ import type { Resident, CareEvent } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-export default async function FamilyDashboardPage({
-  searchParams,
-}: {
-  searchParams: { returnTo?: string }
-}) {
+export default async function FamilyDashboardPage() {
   const profile = await getCurrentProfile()
   if (!profile) redirect('/login')
 
   const supabase = createServiceClient()
   const isAdmin = profile.role === 'admin' || profile.role === 'director'
   const isStaff = profile.role === 'staff' || profile.role === 'nurse'
-  const readOnly = isStaff
-
-  // Determine back-link for non-family users
-  const returnTo = searchParams.returnTo ??
-    (isStaff ? '/staff/tickets' : isAdmin ? '/admin/dashboard' : null)
+  const readOnly = isAdmin || isStaff
 
   let residents: Resident[] = []
 
@@ -62,7 +54,6 @@ export default async function FamilyDashboardPage({
       profileId={profile.id}
       isAdmin={isAdmin || isStaff}
       readOnly={readOnly}
-      returnTo={returnTo}
     />
   )
 }
