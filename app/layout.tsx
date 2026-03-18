@@ -25,12 +25,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const profile = await getCurrentProfile();
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'director';
+  const showNav = profile && ['admin', 'director', 'staff', 'nurse'].includes(profile.role);
 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {isAdmin && <AdminNav role={profile!.role as 'admin' | 'director'} />}
+        {showNav && <AdminNav role={profile.role} />}
         {children}
       </body>
     </html>

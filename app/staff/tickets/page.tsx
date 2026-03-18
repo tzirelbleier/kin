@@ -23,6 +23,5 @@ export default async function StaffTicketsPage() {
     .eq('facility_id', profile.facility_id)
     .order('created_at', { ascending: false })
 
-  const isAdmin = profile.role === 'admin' || profile.role === 'director'
-  return <StaffTicketsClient tickets={tickets ?? []} profileId={profile.id} isAdmin={isAdmin} />
+  return <StaffTicketsClient tickets={tickets ?? []} profileId={profile.id} />
 }

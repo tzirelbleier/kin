@@ -236,10 +236,9 @@ interface Props {
     messages?: (TicketMessage & { author?: { full_name: string; role: string } })[]
   })[]
   profileId: string
-  isAdmin?: boolean
 }
 
-export function StaffTicketsClient({ tickets, profileId, isAdmin }: Props) {
+export function StaffTicketsClient({ tickets, profileId }: Props) {
   const isMobile = useIsMobile()
   const [mobileView, setMobileView] = useState<'queue' | 'thread'>('queue')
   const [mode, setMode] = useState<'queue' | 'reports'>('queue')
@@ -310,48 +309,7 @@ export function StaffTicketsClient({ tickets, profileId, isAdmin }: Props) {
 
   return (
     <div className="kin-page">
-      {/* Row 1: portal nav — only for non-admin (admin gets AdminNav from layout) */}
-      {!isAdmin && (
-        <nav className="kin-nav kin-nav--dark" style={{ gap: 4, fontSize: 13, flexWrap: 'wrap', zIndex: 50 }}>
-          <span style={{ color: 'var(--color-nav-dark-muted)', fontWeight: 700, marginRight: 4, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
-            Idene Staff
-          </span>
-          <div style={{ display: 'flex', gap: 2, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
-            <a
-              href="/family/dashboard"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6,
-                textDecoration: 'none', fontWeight: 400, background: 'transparent',
-                color: 'var(--color-nav-dark-muted)', transition: 'background 0.1s, color 0.1s',
-                whiteSpace: 'nowrap', minHeight: 36,
-              }}
-            >
-              <span>♥</span><span>Family View</span>
-            </a>
-            <span
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6,
-                fontWeight: 600, background: 'var(--color-nav-dark-active)',
-                color: '#fff', whiteSpace: 'nowrap', minHeight: 36,
-              }}
-            >
-              <span>#</span><span>Staff Tickets</span>
-            </span>
-          </div>
-          <button
-            onClick={signOut}
-            style={{
-              background: 'transparent', border: '1px solid var(--color-nav-dark-border)',
-              borderRadius: 6, padding: '6px 12px', color: 'var(--color-nav-dark-muted)',
-              fontSize: 13, cursor: 'pointer', minHeight: 36, whiteSpace: 'nowrap',
-            }}
-          >
-            Sign out
-          </button>
-        </nav>
-      )}
-
-      {/* Row 2: sub-tabs */}
+      {/* Sub-tabs (portal nav is in layout) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 24px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)', overflowX: 'auto' }}>
         {overdueCount > 0 && <span className="chip chip--urgent" style={{ marginRight: 8 }}>{overdueCount} overdue</span>}
         {(['queue', 'reports'] as const).map(tab => (

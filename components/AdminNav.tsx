@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase'
 
-export function AdminNav({ role }: { role?: string }) {
+export function AdminNav({ role }: { role: string }) {
   const pathname = usePathname()
   const router = useRouter()
+  const isAdmin = role === 'admin' || role === 'director'
 
   const signOut = async () => {
     const supabase = createBrowserClient()
@@ -15,16 +16,21 @@ export function AdminNav({ role }: { role?: string }) {
     router.refresh()
   }
 
-  const links = [
-    { href: '/family/dashboard', label: 'Family View', icon: '♥' },
-    { href: '/staff/tickets', label: 'Staff Tickets', icon: '#' },
-    { href: '/admin/dashboard', label: 'Admin Dashboard', icon: '◈' },
-  ]
+  const links = isAdmin
+    ? [
+        { href: '/family/dashboard', label: 'Family View', icon: '♥' },
+        { href: '/staff/tickets', label: 'Staff Tickets', icon: '#' },
+        { href: '/admin/dashboard', label: 'Admin Dashboard', icon: '◈' },
+      ]
+    : [
+        { href: '/family/dashboard', label: 'Family View', icon: '♥' },
+        { href: '/staff/tickets', label: 'Staff Tickets', icon: '#' },
+      ]
 
   return (
     <nav className="kin-nav kin-nav--dark" style={{ gap: 4, fontSize: 13, flexWrap: 'wrap', zIndex: 50 }}>
       <span style={{ color: 'var(--color-nav-dark-muted)', fontWeight: 700, marginRight: 4, letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
-        Idene Admin
+        {isAdmin ? 'Idene Admin' : 'Idene Staff'}
       </span>
 
       <div style={{ display: 'flex', gap: 2, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
